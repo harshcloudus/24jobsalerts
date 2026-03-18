@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/container-queries";
+
+@theme {
+  --color-primary: #c4563a;
+  --color-primary-hover: #a84830;
+  --color-background: #ffffff;
+  --color-sand-light: #fafafa;
+  --color-card: #ffffff;
+  --color-charcoal: #1a1716;
+  --color-charcoal-soft: #332f2e;
+  --color-text-body: #4a4442;
+  --color-text-muted: #736b68;
+  --color-border: #1a1716; /* Defined black border */
+  --color-border-light: #d1cdc9;
+  --font-display: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-display);
+  background-color: var(--color-background);
+  color: var(--color-charcoal);
+}
+
+.nav-solid {
+  background-color: #ffffff;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.hover-glow:hover {
+  box-shadow: 4px 4px 0px var(--color-border);
+}
+
+.card-shadow {
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 0 0 transparent; /* Remove soft shadows in favor of borders */
+}
+
+.search-shadow {
+  border: 2px solid var(--color-border);
+}
+
+.card-shadow-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px var(--color-border);
+}
+
+.job-pill {
+  background-color: #ffffff;
+  border: 1.5px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.job-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(196, 86, 58, 0.04);
+}
+
+.btn-black-border {
+  border: 1.5px solid var(--color-border);
+}
+
+.input-black-border {
+  border: 1.5px solid var(--color-border) !important;
+}
