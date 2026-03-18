@@ -1,59 +1,72 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from .config import settings
-from .database import engine, Base
-from .deps import get_db
-from .crud import jobs as crud_jobs
-from .schemas import Job, JobCreate, JobUpdate
-from . import models
+from typing import Optional
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+from .config import settings
+from .crud.jobs import distinct_filters, get_job as get_job_crud, list_jobs
+from .database import Base, engine
+from .deps import get_db
+from .schemas import FilterOptions, JobDetail, JobListResponse, JobSummary
+
+Base.metadata.bind = engine
 
 app = FastAPI(title=settings.API_TITLE, version=settings.API_VERSION)
 
+origins = [
+    "http://localhost:3000",
+    "https://your-frontend.vercel.app",
+]
 
-@app.get("/")
-def read_root():
-    return {"message": "JobKaka API"}
-
-
-@app.get("/jobs/", response_model=list[Job])
-def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    jobs = crud_jobs.get_jobs(db, skip=skip, limit=limit)
-    return jobs
-
-
-@app.get("/jobs/search/{title}", response_model=list[Job])
-def search_jobs(title: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    jobs = crud_jobs.get_jobs_by_title(db, title=title, skip=skip, limit=limit)
-    return jobs
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-@app.get("/jobs/{job_id}", response_model=Job)
-def read_job(job_id: int, db: Session = Depends(get_db)):
-    db_job = crud_jobs.get_job(db, job_id=job_id)
-    if not db_job:
+@app.get("/api/jobs", response_model=JobListResponse)
+def api_list_jobs(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = None,
+    job_type: Optional[str] = None,
+    qualification: Optional[str] = None,
+    category: Optional[str] = None,
+    only_recent: bool = Query(
+        False,
+        description="If true, only jobs from the last 6 months are returned",
+    ),
+    db: Session = Depends(get_db),
+):
+    jobs, total = list_jobs(
+        db, page, page_size, search, job_type, qualification, category, only_recent
+    )
+    summaries = [JobSummary.model_validate(j) for j in jobs]
+    return JobListResponse(
+        items=summaries,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@app.get("/api/jobs/{job_id}", response_model=JobDetail)
+def api_get_job(job_id: int, db: Session = Depends(get_db)):
+    job = get_job_crud(db, job_id)
+    if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return db_job
+    return JobDetail.model_validate(job)
 
 
-@app.post("/jobs/", response_model=Job)
-def create_job(job: JobCreate, db: Session = Depends(get_db)):
-    return crud_jobs.create_job(db=db, job=job)
-
-
-@app.put("/jobs/{job_id}", response_model=Job)
-def update_job(job_id: int, job: JobUpdate, db: Session = Depends(get_db)):
-    db_job = crud_jobs.update_job(db=db, job_id=job_id, job=job)
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return db_job
-
-
-@app.delete("/jobs/{job_id}")
-def delete_job(job_id: int, db: Session = Depends(get_db)):
-    db_job = crud_jobs.delete_job(db=db, job_id=job_id)
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return {"message": "Job deleted"}
+@app.get("/api/filters", response_model=FilterOptions)
+def api_filters(db: Session = Depends(get_db)):
+    job_types, qualifications, categories = distinct_filters(db)
+    return FilterOptions(
+        job_types=[jt for jt in job_types if jt],
+        qualifications=[q for q in qualifications if q],
+        categories=[c for c in categories if c],
+    )

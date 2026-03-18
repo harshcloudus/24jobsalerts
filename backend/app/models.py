@@ -1,21 +1,29 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, Integer, Text
+from sqlalchemy.dialects.postgresql import JSONB
+
 from .database import Base
 
 
 class Job(Base):
-    __tablename__ = "jobs"
+    __tablename__ = "jobs_24jobsalerts"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False, index=True)
-    company = Column(String(255), nullable=False)
-    location = Column(String(255))
-    description = Column(Text)
-    job_type = Column(String(50))
-    salary_min = Column(Float)
-    salary_max = Column(Float)
-    apply_url = Column(String(500))
-    posted_date = Column(DateTime)
-    is_published = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    url = Column(Text, unique=True, index=True)
+    title = Column(Text, index=True)
+    posted_date = Column(Text, index=True)
+    job_type = Column(Text, index=True)
+    qualification = Column(Text, index=True)
+    intro_text = Column(Text)
+    application_fee = Column(Text)
+    selection_process = Column(Text)
+    official_site = Column(Text)
+    official_site_text = Column(Text)
+    eligibility_text = Column(Text)
+    requirement_text = Column(Text)
+    last_date_text = Column(Text)
+    category = Column(Text, index=True)
+    tables_json = Column(JSONB)
+    search_by_qualification_json = Column(JSONB)
+    search_by_type_json = Column(JSONB)
+    related_jobs_json = Column(JSONB)
+    created_at = Column(DateTime, index=True)

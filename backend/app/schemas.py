@@ -1,42 +1,47 @@
-from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Any, List, Optional
+
+from pydantic import BaseModel
 
 
-class JobBase(BaseModel):
-    title: str
-    company: str
-    location: Optional[str] = None
-    description: Optional[str] = None
-    job_type: Optional[str] = None
-    salary_min: Optional[float] = None
-    salary_max: Optional[float] = None
-    apply_url: Optional[str] = None
-    posted_date: Optional[datetime] = None
-    is_published: bool = True
-
-
-class JobCreate(JobBase):
-    pass
-
-
-class JobUpdate(BaseModel):
-    title: Optional[str] = None
-    company: Optional[str] = None
-    location: Optional[str] = None
-    description: Optional[str] = None
-    job_type: Optional[str] = None
-    salary_min: Optional[float] = None
-    salary_max: Optional[float] = None
-    apply_url: Optional[str] = None
-    posted_date: Optional[datetime] = None
-    is_published: Optional[bool] = None
-
-
-class Job(JobBase):
+class JobSummary(BaseModel):
     id: int
-    created_at: datetime
-    updated_at: Optional[datetime] = None
+    url: Optional[str] = None
+    title: str
+    posted_date: Optional[str] = None
+    job_type: Optional[str] = None
+    qualification: Optional[str] = None
+    category: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class JobDetail(JobSummary):
+    intro_text: Optional[str] = None
+    application_fee: Optional[str] = None
+    selection_process: Optional[str] = None
+    official_site: Optional[str] = None
+    official_site_text: Optional[str] = None
+    eligibility_text: Optional[str] = None
+    requirement_text: Optional[str] = None
+    last_date_text: Optional[str] = None
+    tables_json: Optional[List[Any]] = None
+    search_by_qualification_json: Optional[List[Any]] = None
+    search_by_type_json: Optional[List[Any]] = None
+    related_jobs_json: Optional[List[Any]] = None
+    created_at: Optional[datetime] = None
+
+
+class JobListResponse(BaseModel):
+    items: List[JobSummary]
+    total: int
+    page: int
+    page_size: int
+
+
+class FilterOptions(BaseModel):
+    job_types: List[str]
+    qualifications: List[str]
+    categories: List[str]
+
