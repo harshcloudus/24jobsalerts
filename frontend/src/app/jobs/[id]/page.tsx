@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 export default function JobDetailPage() {
   const { id } = useParams();
-  const API_BASE = "http://localhost:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
   const [job, setJob] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);

@@ -15,7 +15,7 @@ export default function Home() {
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [loadingAll, setLoadingAll] = useState(true);
-  const API_BASE = "http://localhost:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
   const getJobTypeIcon = (type: string) => {
     const t = type.toLowerCase();

@@ -7,7 +7,7 @@ import JobCard from "../components/JobCard";
 
 function LatestJobsContent() {
   const searchParams = useSearchParams();
-  const API_BASE = "http://localhost:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");

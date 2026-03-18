@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function Qualifications() {
-  const API_BASE = "http://localhost:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
   const searchParams = useSearchParams();
   const initialFromQuery = searchParams.get("qualification") || "";
 
