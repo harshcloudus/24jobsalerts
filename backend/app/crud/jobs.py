@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 
 from sqlalchemy import and_, func, or_, select
+from sqlalchemy.sql import case
 from sqlalchemy.orm import Session
 
 from ..models import Job
@@ -94,11 +95,17 @@ def list_jobs(
         # Use posted_date text column (e.g. "12 January 2022") instead of created_at
         # Convert to DATE in Postgres and compare with a 6‑month cutoff
         cutoff = datetime.utcnow() - timedelta(days=180)
-        cutoff_str = cutoff.strftime("%Y-%m-%d")
-        date_expr = func.to_date(Job.posted_date, "DD Month YYYY")
+        cutoff_date = cutoff.date()
+        # Only attempt parsing for values that look like "12 January 2022"
+        valid_date_pattern = r"^[0-9]{1,2} [A-Za-z]+ [0-9]{4}$"
+        date_expr = case(
+            (Job.posted_date.op("~")(valid_date_pattern), func.to_date(Job.posted_date, "DD Month YYYY")),
+            else_=None,
+        )
         conditions.append(Job.posted_date.isnot(None))
         conditions.append(Job.posted_date != "")
-        conditions.append(date_expr >= cutoff_str)
+        conditions.append(date_expr.isnot(None))
+        conditions.append(date_expr >= cutoff_date)
 
     if conditions:
         query = query.where(and_(*conditions))
@@ -106,7 +113,11 @@ def list_jobs(
     total = db.scalar(select(func.count()).select_from(query.subquery()))
 
     # Sort by posted_date (newest first). Fallback to created_at when needed.
-    posted_date_expr = func.to_date(Job.posted_date, "DD Month YYYY")
+    valid_date_pattern = r"^[0-9]{1,2} [A-Za-z]+ [0-9]{4}$"
+    posted_date_expr = case(
+        (Job.posted_date.op("~")(valid_date_pattern), func.to_date(Job.posted_date, "DD Month YYYY")),
+        else_=None,
+    )
 
     query = (
         query.order_by(

@@ -28,6 +28,11 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def root():
+    return {"status": "ok"}
+
+
 @app.get("/api/jobs", response_model=JobListResponse)
 def api_list_jobs(
     page: int = Query(1, ge=1),

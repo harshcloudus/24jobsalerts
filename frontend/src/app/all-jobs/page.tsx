@@ -7,7 +7,7 @@ import JobCard from "../components/JobCard";
 
 function AllJobsContent() {
   const searchParams = useSearchParams();
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "https://two4jobsalerts.onrender.com").replace(/\/$/, "");
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
