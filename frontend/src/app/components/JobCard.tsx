@@ -27,6 +27,14 @@ export default function JobCard({
   const jobType = job.job_type || "Not specified";
   const qualificationText = job.qualification || "Not specified";
 
+  const buildJobSlug = (rawTitle: string, id: number) => {
+    const base = (rawTitle || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return `/jobs/${base || "job"}-${id}`;
+  };
+
   return (
     <article className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group">
       <div>
@@ -72,7 +80,7 @@ export default function JobCard({
           <span />
         )}
         <Link
-          href={`/jobs/${job.id}`}
+          href={buildJobSlug(title, job.id)}
           className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-black text-sm border-2 border-charcoal transition-all"
         >
           DETAILS

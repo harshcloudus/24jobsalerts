@@ -124,11 +124,11 @@ export default function JobTypes() {
   return (
     <div className="min-h-screen bg-white">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-12">
-          <h2 className="text-4xl md:text-5xl font-900 text-charcoal mb-4 tracking-tighter uppercase italic">
+        <div className="mb-10 sm:mb-12">
+          <h1 className="text-3xl font-900 tracking-tighter text-charcoal mb-2 uppercase italic">
             Explore by <span className="text-primary">Job Type</span>
-          </h2>
-          <p className="text-lg text-text-body max-w-2xl font-bold italic">
+          </h1>
+          <p className="text-base text-text-body max-w-2xl font-bold">
             Discover high-impact roles in essential industries. Whether you're in public service, healthcare, or finance, your next career move starts here.
           </p>
         </div>
@@ -236,7 +236,10 @@ export default function JobTypes() {
                         <span className="material-symbols-outlined">bookmark</span>
                       </button>
                       <Link
-                        href={`/jobs/${job.id}`}
+                        href={`/jobs/${(job.title || "job")
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .replace(/^-+|-+$/g, "")}-${job.id}`}
                         className="w-auto py-2 px-6 rounded-lg bg-primary/10 text-primary text-center text-sm font-black border-2 border-charcoal hover:bg-primary hover:text-white transition-all"
                         type="button"
                       >

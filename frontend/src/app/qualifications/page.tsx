@@ -87,8 +87,12 @@ export default function Qualifications() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <section className="mb-12">
           <div className="mb-8">
-            <h2 className="text-4xl font-900 tracking-tighter text-charcoal uppercase italic">Jobs by Qualification</h2>
-            <p className="mt-3 text-text-body max-w-2xl text-lg font-bold italic">Select your education level to find tailored career opportunities.</p>
+            <h1 className="text-3xl font-900 tracking-tighter text-charcoal mb-2 uppercase italic">
+              Jobs by Qualification
+            </h1>
+            <p className="text-text-body max-w-2xl text-base font-bold">
+              Select your education level to find tailored career opportunities.
+            </p>
           </div>
           
           <div className="flex flex-wrap gap-4 sm:gap-6 pb-4">
@@ -186,7 +190,10 @@ export default function Qualifications() {
                         <span className="material-symbols-outlined">bookmark</span>
                       </button>
                       <Link
-                        href={`/jobs/${job.id}`}
+                        href={`/jobs/${(job.title || "job")
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .replace(/^-+|-+$/g, "")}-${job.id}`}
                         className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-black text-sm border-2 border-charcoal transition-all"
                         type="button"
                       >

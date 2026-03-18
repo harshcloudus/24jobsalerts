@@ -7,7 +7,7 @@ export default function Footer() {
         <div>
           <div className="flex items-center gap-2 text-primary mb-6">
             <span className="material-symbols-outlined text-3xl font-bold">
-              explore
+              work_history
             </span>
             <h2 className="text-xl font-900 tracking-tight text-charcoal">
               24jobsalerts

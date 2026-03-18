@@ -13,12 +13,22 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const parseNumericId = () => {
+    if (!id) return null;
+    const raw = Array.isArray(id) ? id[0] : (id as string);
+    const parts = raw.split("-");
+    const last = parts[parts.length - 1];
+    const num = Number(last);
+    return Number.isNaN(num) ? null : num;
+  };
+
   useEffect(() => {
+    const numId = parseNumericId();
+    if (numId === null) return;
     async function fetchJobDetail() {
-      if (!id) return;
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/jobs/${id}`);
+        const res = await fetch(`${API_BASE}/api/jobs/${numId}`);
         if (!res.ok) throw new Error("Job not found");
         const data = await res.json();
         setJob(data);
@@ -32,10 +42,10 @@ export default function JobDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!id) return;
+    const numId = parseNumericId();
+    if (numId === null) return;
     if (typeof document === "undefined") return;
     const key = "saved_job_ids";
-    const numId = Number(id);
     const match = document.cookie.split("; ").find((row) => row.startsWith(`${key}=`));
     if (!match) {
       setIsSaved(false);
@@ -55,9 +65,9 @@ export default function JobDetailPage() {
   }, [id]);
 
   const toggleSave = () => {
-    if (!id || typeof document === "undefined") return;
+    const numId = parseNumericId();
+    if (numId === null || typeof document === "undefined") return;
     const key = "saved_job_ids";
-    const numId = Number(id);
     const match = document.cookie.split("; ").find((row) => row.startsWith(`${key}=`));
     let arr: number[] = [];
     if (match) {

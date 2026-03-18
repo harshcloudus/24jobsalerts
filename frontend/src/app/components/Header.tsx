@@ -21,7 +21,7 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2 text-primary">
-              <span className="material-symbols-outlined text-3xl font-bold">explore</span>
+              <span className="material-symbols-outlined text-3xl font-bold">work_history</span>
               <h1 className="text-xl font-900 tracking-tight text-charcoal">24jobsalerts</h1>
             </Link>
             <div className="hidden md:flex items-center gap-6">
