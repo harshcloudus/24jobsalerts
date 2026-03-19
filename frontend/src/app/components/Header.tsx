@@ -1,10 +1,12 @@
- "use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export default function Header() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const linkClass = (href: string) => {
     const base = "text-sm font-bold transition-colors";
@@ -19,11 +21,17 @@ export default function Header() {
     <nav className="sticky top-0 z-50 nav-solid">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-8">
+          {/* Logo and desktop nav */}
+          <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/" className="flex items-center gap-2 text-primary">
-              <span className="material-symbols-outlined text-3xl font-bold">work_history</span>
-              <h1 className="text-xl font-900 tracking-tight text-charcoal">24jobsalerts</h1>
+              <span className="material-symbols-outlined text-3xl font-bold">
+                work_history
+              </span>
+              <h1 className="text-xl font-900 tracking-tight text-charcoal">
+                24jobsalerts
+              </h1>
             </Link>
+            {/* Desktop links */}
             <div className="hidden md:flex items-center gap-6">
               <Link className={linkClass("/")} href="/">
                 Home
@@ -45,14 +53,66 @@ export default function Header() {
               </Link>
             </div>
           </div>
-          <Link
-            href="/bookmarks"
-            className="bg-white text-charcoal border-2 border-charcoal px-5 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all flex items-center gap-1"
-          >
-            <span className="material-symbols-outlined text-base">bookmark</span>
-            Bookmarks
-          </Link>
+
+          {/* Desktop bookmarks + mobile toggle */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/bookmarks"
+              className="hidden sm:flex bg-white text-charcoal border-2 border-charcoal px-5 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-base">
+                bookmark
+              </span>
+              Bookmarks
+            </Link>
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              className="md:hidden flex items-center justify-center w-9 h-9 border-2 border-charcoal rounded-lg bg-white text-charcoal"
+              onClick={() => setIsOpen((open) => !open)}
+              aria-label="Toggle navigation"
+            >
+              <span className="material-symbols-outlined text-lg">
+                {isOpen ? "close" : "menu"}
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile menu */}
+        {isOpen && (
+          <div className="md:hidden pb-3 border-t border-charcoal/10">
+            <div className="flex flex-col gap-2 pt-3">
+              <Link className={linkClass("/")} href="/">
+                Home
+              </Link>
+              <Link className={linkClass("/latest-jobs")} href="/latest-jobs">
+                Latest Jobs
+              </Link>
+              <Link className={linkClass("/all-jobs")} href="/all-jobs">
+                All Jobs
+              </Link>
+              <Link
+                className={linkClass("/qualifications")}
+                href="/qualifications"
+              >
+                Qualification
+              </Link>
+              <Link className={linkClass("/job-types")} href="/job-types">
+                Job Types
+              </Link>
+              <Link
+                href="/bookmarks"
+                className="mt-1 bg-white text-charcoal border-2 border-charcoal px-4 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all flex items-center gap-1 w-max"
+              >
+                <span className="material-symbols-outlined text-base">
+                  bookmark
+                </span>
+                Bookmarks
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
