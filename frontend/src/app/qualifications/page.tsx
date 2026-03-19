@@ -17,9 +17,40 @@ function QualificationsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const headingRef = useRef<HTMLDivElement | null>(null);
+  const [savedIds, setSavedIds] = useState<number[]>([]);
 
   const pageSize = 9;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const cookieKey = "saved_job_ids";
+
+  const readSavedIdsFromCookie = () => {
+    if (typeof document === "undefined") return [];
+    const match = document.cookie.split("; ").find((row) => row.startsWith(`${cookieKey}=`));
+    if (!match) return [];
+    try {
+      const val = decodeURIComponent(match.split("=")[1]);
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) {
+        return parsed.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const toggleSaved = (id: number) => {
+    if (typeof document === "undefined") return;
+    let ids = readSavedIdsFromCookie();
+    if (ids.includes(id)) {
+      ids = ids.filter((n) => n !== id);
+    } else {
+      ids = [...ids, id];
+    }
+    const encoded = encodeURIComponent(JSON.stringify(ids));
+    document.cookie = `${cookieKey}=${encoded}; path=/; max-age=${60 * 60 * 24 * 30}`;
+    setSavedIds(ids);
+  };
 
   useEffect(() => {
     async function fetchQualifications() {
@@ -44,6 +75,7 @@ function QualificationsContent() {
       }
     }
     fetchQualifications();
+    setSavedIds(readSavedIdsFromCookie());
   }, []);
 
   const fetchJobs = async (qual: string, page: number) => {
@@ -156,6 +188,7 @@ function QualificationsContent() {
                     : rawCategory || "Job";
                 const jobType = job.job_type || "Any job type";
                 const qualificationText = job.qualification || "Open to multiple levels";
+                const isSaved = savedIds.includes(job.id);
 
                 return (
                   <article
@@ -186,8 +219,14 @@ function QualificationsContent() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between border-t-2 pt-4 border-charcoal/10 mt-4">
-                      <button className="text-charcoal hover:text-primary transition-colors" type="button">
-                        <span className="material-symbols-outlined">bookmark</span>
+                      <button
+                        className="text-charcoal hover:text-primary transition-colors"
+                        type="button"
+                        onClick={() => toggleSaved(job.id)}
+                      >
+                        <span className="material-symbols-outlined">
+                          {isSaved ? "bookmark_added" : "bookmark_add"}
+                        </span>
                       </button>
                       <Link
                         href={`/jobs/${(job.title || "job")

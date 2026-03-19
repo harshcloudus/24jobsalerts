@@ -187,9 +187,9 @@ export default function Home() {
         </div>
         <div className="flex gap-6 overflow-x-auto pb-4 pt-2">
           {loadingHomeJobTypes ? (
-            <div className="text-sm font-bold underline">Loading...</div>
+            <div className="w-full text-center text-sm font-bold underline">Loading...</div>
           ) : homeJobTypes.length === 0 ? (
-            <div className="text-sm font-bold italic">No data.</div>
+            <div className="w-full text-center text-sm font-bold italic">No data.</div>
           ) : (
             homeJobTypes.map((type) => (
               <button
@@ -223,9 +223,9 @@ export default function Home() {
         </div>
         <div className="flex gap-6 overflow-x-auto pb-4 pt-2">
           {loadingHomeQuals ? (
-            <div className="text-sm font-bold underline">Loading...</div>
+            <div className="w-full text-center text-sm font-bold underline">Loading...</div>
           ) : homeQualifications.length === 0 ? (
-            <div className="text-sm font-bold italic">No data.</div>
+            <div className="w-full text-center text-sm font-bold italic">No data.</div>
           ) : (
             homeQualifications.map((qual) => (
               <button
