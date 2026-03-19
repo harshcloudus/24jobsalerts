@@ -4,21 +4,25 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 try:
-    # Load environment variables from local .env if present,
-    # so SUPABASE_DB_URL is available when running scripts directly.
     from dotenv import load_dotenv  # type: ignore
 
-    load_dotenv()
+    # Try cron/.env, then repo root .env, then backend/.env
+    _dir = os.path.dirname(os.path.abspath(__file__))
+    load_dotenv(os.path.join(_dir, ".env"))
+    load_dotenv(os.path.join(_dir, "..", ".env"))
+    load_dotenv(os.path.join(_dir, "..", "backend", ".env"))
 except Exception:
-    # If python-dotenv is not installed, we simply rely on the
-    # environment already containing SUPABASE_DB_URL.
     pass
 
-
-DB_URL = os.getenv("SUPABASE_DB_URL")
+# Support both var names so backend/.env (DATABASE_URL) works
+DB_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
 
 
 def get_conn():
+    if not DB_URL:
+        raise RuntimeError(
+            "Set SUPABASE_DB_URL or DATABASE_URL in cron/.env or backend/.env"
+        )
     return psycopg2.connect(DB_URL)
 
 
