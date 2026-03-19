@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function JobTypes() {
+function JobTypesContent() {
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
   const searchParams = useSearchParams();
   const initialFromQuery = searchParams.get("job_type") || "";
@@ -284,5 +284,19 @@ export default function JobTypes() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function JobTypes() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center font-black uppercase">
+          Loading...
+        </div>
+      }
+    >
+      <JobTypesContent />
+    </Suspense>
   );
 }
