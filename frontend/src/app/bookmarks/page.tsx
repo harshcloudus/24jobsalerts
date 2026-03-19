@@ -12,7 +12,7 @@ type SavedJob = {
   category?: string | null;
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "https://two4jobsalerts.onrender.com").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
 const COOKIE_KEY = "saved_job_ids";
 
 function getSavedIdsFromCookie(): number[] {
