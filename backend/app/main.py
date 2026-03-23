@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -50,7 +50,51 @@ def api_list_jobs(
     jobs, total = list_jobs(
         db, page, page_size, search, job_type, qualification, category, only_recent
     )
-    summaries = [JobSummary.model_validate(j) for j in jobs]
+    def extract_salary_from_tables(tables_json: Any) -> Optional[str]:
+        if not isinstance(tables_json, list):
+            return None
+
+        for table in tables_json:
+            if not isinstance(table, dict):
+                continue
+            columns = table.get("columns")
+            rows = table.get("rows")
+            if not isinstance(columns, list) or not isinstance(rows, list):
+                continue
+
+            salary_idx = next(
+                (
+                    idx
+                    for idx, col in enumerate(columns)
+                    if isinstance(col, str) and col.strip().lower() == "salary"
+                ),
+                None,
+            )
+            if salary_idx is None:
+                continue
+
+            for row in rows:
+                if not isinstance(row, list):
+                    continue
+                if salary_idx >= len(row):
+                    continue
+                value = row[salary_idx]
+                if value is None:
+                    continue
+                salary = str(value).strip()
+                if salary:
+                    return salary
+
+            # Salary column exists but value not found; keep it empty.
+            return None
+
+        return None
+
+    summaries = []
+    for job in jobs:
+        payload = JobSummary.model_validate(job).model_dump()
+        payload["salary"] = extract_salary_from_tables(getattr(job, "tables_json", None))
+        summaries.append(JobSummary.model_validate(payload))
     return JobListResponse(
         items=summaries,
         total=total,

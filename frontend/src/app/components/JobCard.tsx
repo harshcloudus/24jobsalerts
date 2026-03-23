@@ -28,6 +28,7 @@ export default function JobCard({
       : rawCategory || "Job";
   const jobType = job.job_type || "Not specified";
   const qualificationText = job.qualification || "Not specified";
+  const salaryText = job.salary || "";
 
   const buildJobSlug = (rawTitle: string, id: number) => {
     const base = (rawTitle || "")
@@ -75,6 +76,12 @@ export default function JobCard({
               QUALIFICATION:
             </span>
             {qualificationText}
+          </p>
+          <p>
+            <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">
+              SALARY:
+            </span>
+            {salaryText}
           </p>
         </div>
       </div>

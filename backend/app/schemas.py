@@ -11,6 +11,7 @@ class JobSummary(BaseModel):
     posted_date: Optional[str] = None
     job_type: Optional[str] = None
     qualification: Optional[str] = None
+    salary: Optional[str] = None
     category: Optional[str] = None
 
     class Config:
