@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function QualificationsContent() {
+  const router = useRouter();
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
   const searchParams = useSearchParams();
   const initialFromQuery = searchParams.get("qualification") || "";
@@ -127,7 +128,7 @@ function QualificationsContent() {
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-4 sm:gap-6 pb-4">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-2">
             {loadingQuals ? (
               <div className="text-sm font-bold underline">Loading...</div>
             ) : qualifications.length === 0 ? (
@@ -140,7 +141,7 @@ function QualificationsContent() {
                     key={qual} 
                     onClick={() => setActiveQualification(qual)}
                     type="button" 
-                    className={`flex flex-col items-center justify-center w-32 h-32 sm:w-36 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 ${isActive ? 'bg-primary text-white border-charcoal shadow-[6px_6px_0px_rgba(26,23,22,1)]' : 'text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)]'}`}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 sm:w-36 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 ${isActive ? 'bg-primary text-white border-charcoal shadow-[6px_6px_0px_rgba(26,23,22,1)]' : 'text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)]'}`}
                   >
                     <span className={`material-symbols-outlined text-3xl mb-2 ${isActive ? 'text-white' : 'text-primary'}`}>school</span>
                     <span className="text-[11px] sm:text-sm font-black uppercase italic tracking-tighter text-center">
@@ -189,11 +190,24 @@ function QualificationsContent() {
                 const jobType = job.job_type || "Any job type";
                 const qualificationText = job.qualification || "Open to multiple levels";
                 const isSaved = savedIds.includes(job.id);
+                const jobHref = `/jobs/${(job.title || "job")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-+|-+$/g, "")}-${job.id}`;
 
                 return (
                   <article
                     key={idx}
-                    className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group"
+                    className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(jobHref)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(jobHref);
+                      }
+                    }}
                   >
                     <div>
                       <div className="flex justify-between items-start mb-4">
@@ -222,19 +236,20 @@ function QualificationsContent() {
                       <button
                         className="text-charcoal hover:text-primary transition-colors"
                         type="button"
-                        onClick={() => toggleSaved(job.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSaved(job.id);
+                        }}
                       >
                         <span className="material-symbols-outlined">
                           {isSaved ? "bookmark_added" : "bookmark_add"}
                         </span>
                       </button>
                       <Link
-                        href={`/jobs/${(job.title || "job")
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]+/g, "-")
-                          .replace(/^-+|-+$/g, "")}-${job.id}`}
+                        href={jobHref}
                         className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-black text-sm border-2 border-charcoal transition-all"
                         type="button"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         DETAILS
                       </Link>

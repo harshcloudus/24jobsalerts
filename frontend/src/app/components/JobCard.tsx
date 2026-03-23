@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface JobCardProps {
   job: any;
@@ -15,6 +16,7 @@ export default function JobCard({
   onToggleSaved,
   showBookmark = false,
 }: JobCardProps) {
+  const router = useRouter();
   const title: string = job.title || "Untitled role";
   const shortTitle = title.length > 70 ? `${title.slice(0, 67)}...` : title;
   const rawCategory = job.category as string | null;
@@ -34,9 +36,21 @@ export default function JobCard({
       .replace(/^-+|-+$/g, "");
     return `/jobs/${base || "job"}-${id}`;
   };
+  const jobHref = buildJobSlug(title, job.id);
 
   return (
-    <article className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group">
+    <article
+      className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push(jobHref)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(jobHref);
+        }
+      }}
+    >
       <div>
         <div className="flex justify-between items-start mb-4">
           <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xl border-2 border-charcoal">
@@ -69,7 +83,10 @@ export default function JobCard({
           <button
             className="text-charcoal hover:text-primary transition-colors flex items-center justify-center"
             type="button"
-            onClick={() => onToggleSaved && onToggleSaved(job.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSaved && onToggleSaved(job.id);
+            }}
             aria-label={isSaved ? "Remove bookmark" : "Save bookmark"}
           >
             <span className="material-symbols-outlined">
@@ -80,8 +97,9 @@ export default function JobCard({
           <span />
         )}
         <Link
-          href={buildJobSlug(title, job.id)}
+          href={jobHref}
           className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-black text-sm border-2 border-charcoal transition-all"
+          onClick={(e) => e.stopPropagation()}
         >
           DETAILS
         </Link>

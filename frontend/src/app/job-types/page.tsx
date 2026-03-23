@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function JobTypesContent() {
+  const router = useRouter();
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
   const searchParams = useSearchParams();
   const initialFromQuery = searchParams.get("job_type") || "";
@@ -235,11 +236,24 @@ function JobTypesContent() {
                 const jobType = job.job_type || "Any job type";
                 const qualificationText = job.qualification || "Open to multiple levels";
                 const isSaved = savedIds.includes(job.id);
+                const jobHref = `/jobs/${(job.title || "job")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-+|-+$/g, "")}-${job.id}`;
 
                 return (
                   <article
                     key={idx}
-                    className="bg-white rounded-2xl border-2 border-charcoal p-5 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between"
+                    className="bg-white rounded-2xl border-2 border-charcoal p-5 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(jobHref)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(jobHref);
+                      }
+                    }}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-4">
@@ -268,19 +282,20 @@ function JobTypesContent() {
                       <button
                         className="text-charcoal hover:text-primary transition-colors"
                         type="button"
-                        onClick={() => toggleSaved(job.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSaved(job.id);
+                        }}
                       >
                         <span className="material-symbols-outlined">
                           {isSaved ? "bookmark_added" : "bookmark_add"}
                         </span>
                       </button>
                       <Link
-                        href={`/jobs/${(job.title || "job")
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]+/g, "-")
-                          .replace(/^-+|-+$/g, "")}-${job.id}`}
+                        href={jobHref}
                         className="w-auto py-2 px-6 rounded-lg bg-primary/10 text-primary text-center text-sm font-black border-2 border-charcoal hover:bg-primary hover:text-white transition-all"
                         type="button"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         DETAILS
                       </Link>

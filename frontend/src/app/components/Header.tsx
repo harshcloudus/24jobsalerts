@@ -7,6 +7,7 @@ import { useState } from "react";
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const closeMenu = () => setIsOpen(false);
 
   const linkClass = (href: string) => {
     const base = "text-sm font-bold transition-colors";
@@ -83,27 +84,41 @@ export default function Header() {
         {isOpen && (
           <div className="md:hidden pb-3 border-t border-charcoal/10">
             <div className="flex flex-col gap-2 pt-3">
-              <Link className={linkClass("/")} href="/">
+              <Link className={linkClass("/")} href="/" onClick={closeMenu}>
                 Home
               </Link>
-              <Link className={linkClass("/latest-jobs")} href="/latest-jobs">
+              <Link
+                className={linkClass("/latest-jobs")}
+                href="/latest-jobs"
+                onClick={closeMenu}
+              >
                 Latest Jobs
               </Link>
-              <Link className={linkClass("/all-jobs")} href="/all-jobs">
+              <Link
+                className={linkClass("/all-jobs")}
+                href="/all-jobs"
+                onClick={closeMenu}
+              >
                 All Jobs
               </Link>
               <Link
                 className={linkClass("/qualifications")}
                 href="/qualifications"
+                onClick={closeMenu}
               >
                 Qualification
               </Link>
-              <Link className={linkClass("/job-types")} href="/job-types">
+              <Link
+                className={linkClass("/job-types")}
+                href="/job-types"
+                onClick={closeMenu}
+              >
                 Job Types
               </Link>
               <Link
                 href="/bookmarks"
                 className="mt-1 bg-white text-charcoal border-2 border-charcoal px-4 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all flex items-center gap-1 w-max"
+                onClick={closeMenu}
               >
                 <span className="material-symbols-outlined text-base">
                   bookmark
