@@ -28,6 +28,62 @@ app.add_middleware(
 )
 
 
+def extract_salary_from_tables(tables_json: Any) -> Optional[str]:
+    if not isinstance(tables_json, list):
+        return None
+
+    salary_column_keywords = (
+        "salary",
+        "pay",
+        "pay scale",
+        "monthly pay",
+        "monthly salary",
+        "stipend",
+        "remuneration",
+        "ctc",
+    )
+
+    for table in tables_json:
+        if not isinstance(table, dict):
+            continue
+        columns = table.get("columns")
+        rows = table.get("rows")
+        if not isinstance(columns, list) or not isinstance(rows, list):
+            continue
+
+        salary_idx = next(
+            (
+                idx
+                for idx, col in enumerate(columns)
+                if isinstance(col, str)
+                and any(
+                    keyword in col.strip().lower()
+                    for keyword in salary_column_keywords
+                )
+            ),
+            None,
+        )
+        if salary_idx is None:
+            continue
+
+        for row in rows:
+            if not isinstance(row, list):
+                continue
+            if salary_idx >= len(row):
+                continue
+            value = row[salary_idx]
+            if value is None:
+                continue
+            salary = str(value).strip()
+            if salary:
+                return salary
+
+        # Salary column exists but value not found; keep it empty.
+        return None
+
+    return None
+
+
 @app.get("/")
 def root():
     return {"status": "ok"}
@@ -50,46 +106,6 @@ def api_list_jobs(
     jobs, total = list_jobs(
         db, page, page_size, search, job_type, qualification, category, only_recent
     )
-    def extract_salary_from_tables(tables_json: Any) -> Optional[str]:
-        if not isinstance(tables_json, list):
-            return None
-
-        for table in tables_json:
-            if not isinstance(table, dict):
-                continue
-            columns = table.get("columns")
-            rows = table.get("rows")
-            if not isinstance(columns, list) or not isinstance(rows, list):
-                continue
-
-            salary_idx = next(
-                (
-                    idx
-                    for idx, col in enumerate(columns)
-                    if isinstance(col, str) and col.strip().lower() == "salary"
-                ),
-                None,
-            )
-            if salary_idx is None:
-                continue
-
-            for row in rows:
-                if not isinstance(row, list):
-                    continue
-                if salary_idx >= len(row):
-                    continue
-                value = row[salary_idx]
-                if value is None:
-                    continue
-                salary = str(value).strip()
-                if salary:
-                    return salary
-
-            # Salary column exists but value not found; keep it empty.
-            return None
-
-        return None
-
     summaries = []
     for job in jobs:
         payload = JobSummary.model_validate(job).model_dump()
@@ -108,7 +124,9 @@ def api_get_job(job_id: int, db: Session = Depends(get_db)):
     job = get_job_crud(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return JobDetail.model_validate(job)
+    payload = JobDetail.model_validate(job).model_dump()
+    payload["salary"] = extract_salary_from_tables(getattr(job, "tables_json", None))
+    return JobDetail.model_validate(payload)
 
 
 @app.get("/api/filters", response_model=FilterOptions)

@@ -235,6 +235,7 @@ function JobTypesContent() {
                     : rawCategory || "Job";
                 const jobType = job.job_type || "Any job type";
                 const qualificationText = job.qualification || "Open to multiple levels";
+                const salaryText = job.salary || "";
                 const isSaved = savedIds.includes(job.id);
                 const jobHref = `/jobs/${(job.title || "job")
                   .toLowerCase()
@@ -275,6 +276,10 @@ function JobTypesContent() {
                         <p>
                           <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">QUALIFICATION:</span>
                           {qualificationText}
+                        </p>
+                        <p>
+                          <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">SALARY:</span>
+                          {salaryText}
                         </p>
                       </div>
                     </div>
