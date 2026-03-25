@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "24jobsalerts - Premium Job Alerts Portal",
   description:
     "24jobsalerts helps you find the right government and private jobs faster with clean, structured job alerts and details.",
+  icons: {
+    icon: "/24jobsalertsfavicon.png",
+    apple: "/24jobsalertsfavicon.png",
+  },
 };
 
 export default function RootLayout({

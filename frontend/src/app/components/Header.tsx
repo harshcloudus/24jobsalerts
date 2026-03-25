@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -24,13 +25,15 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo and desktop nav */}
           <div className="flex items-center gap-4 sm:gap-8">
-            <Link href="/" className="flex items-center gap-2 text-primary">
-              <span className="material-symbols-outlined text-3xl font-bold">
-                work_history
-              </span>
-              <h1 className="text-xl font-900 tracking-tight text-charcoal">
-                24jobsalerts
-              </h1>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/24jobsalertslogo.png"
+                alt="24jobsalerts"
+                width={140}
+                height={36}
+                priority
+                className="h-9 w-auto"
+              />
             </Link>
             {/* Desktop links */}
             <div className="hidden md:flex items-center gap-6">
