@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import JobCard from "./components/JobCard";
@@ -136,9 +137,16 @@ export default function Home() {
         <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/5 to-white pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-10">
-            <h2 className="text-5xl md:text-7xl font-900 tracking-tighter text-charcoal mb-6">
-              24jobsalerts
-            </h2>
+            <div className="mb-6 flex justify-center">
+              <Image
+                src="/24jobsalerts_logo.png"
+                alt="24jobsalerts"
+                width={900}
+                height={220}
+                priority
+                className="w-[185px] sm:w-[280px] md:w-[360px] lg:w-[450px] h-auto"
+              />
+            </div>
             <p className="text-lg md:text-xl text-text-body max-w-2xl mx-auto mb-8 font-medium">
               Find the right job faster. Access thousands of premium opportunities from top-tier companies and government sectors.
             </p>

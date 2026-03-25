@@ -27,7 +27,7 @@ export default function Header() {
           <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/24jobsalertslogo.png"
+                src="/24jobsalerts_logo.png"
                 alt="24jobsalerts"
                 width={140}
                 height={36}

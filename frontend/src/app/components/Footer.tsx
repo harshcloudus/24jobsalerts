@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -6,12 +7,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
         <div>
           <div className="flex items-center gap-2 text-primary mb-6">
-            <span className="material-symbols-outlined text-3xl font-bold">
-              work_history
-            </span>
-            <h2 className="text-xl font-900 tracking-tight text-charcoal">
-              24jobsalerts
-            </h2>
+            <Image
+              src="/24jobsalerts_logo.png"
+              alt="24jobsalerts"
+              width={160}
+              height={40}
+              className="h-10 w-auto"
+            />
           </div>
           <p className="text-sm text-text-body leading-relaxed font-bold">
             Connecting talented professionals with world-class opportunities.
