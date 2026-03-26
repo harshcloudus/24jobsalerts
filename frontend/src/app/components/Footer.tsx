@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { assetUrl } from "@/lib/basePath";
 
 export default function Footer() {
   return (
@@ -9,7 +8,7 @@ export default function Footer() {
         <div>
           <div className="flex items-center gap-2 text-primary mb-6">
             <Image
-              src={assetUrl("/24jobsalerts_logo.png")}
+              src="/24jobsalerts_logo.png"
               alt="24jobsalerts"
               width={160}
               height={40}
