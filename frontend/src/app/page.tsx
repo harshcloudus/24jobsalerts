@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { assetUrl } from "@/lib/basePath";
 import JobCard from "./components/JobCard";
 
 export default function Home() {
@@ -139,7 +140,7 @@ export default function Home() {
           <div className="text-center mb-10">
             <div className="mb-6 flex justify-center">
               <Image
-                src="/24jobsalerts_logo.png"
+                src={assetUrl("/24jobsalerts_logo.png")}
                 alt="24jobsalerts"
                 width={900}
                 height={220}

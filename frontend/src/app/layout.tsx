@@ -4,6 +4,7 @@ import "./globals.css";
 import BackToTopButton from "./components/BackToTopButton";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { assetUrl } from "@/lib/basePath";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -15,8 +16,8 @@ export const metadata: Metadata = {
   description:
     "24jobsalerts helps you find the right government and private jobs faster with clean, structured job alerts and details.",
   icons: {
-    icon: "/24jobsalerts_favicon.png",
-    apple: "/24jobsalerts_favicon.png",
+    icon: assetUrl("/24jobsalerts_favicon.png"),
+    apple: assetUrl("/24jobsalerts_favicon.png"),
   },
 };
 

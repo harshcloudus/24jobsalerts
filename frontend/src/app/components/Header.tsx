@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { assetUrl, pathnameWithoutBase } from "@/lib/basePath";
 
 export default function Header() {
   const pathname = usePathname();
@@ -12,8 +13,9 @@ export default function Header() {
 
   const linkClass = (href: string) => {
     const base = "text-sm font-bold transition-colors";
+    const rel = pathnameWithoutBase(pathname);
     const isActive =
-      pathname === href || (href !== "/" && pathname.startsWith(href));
+      rel === href || (href !== "/" && rel.startsWith(href));
     const color = isActive ? "text-primary" : "text-charcoal hover:text-primary";
     const underline = isActive ? "border-b-2 border-primary pb-0.5" : "";
     return `${base} ${color} ${underline}`;
@@ -27,7 +29,7 @@ export default function Header() {
           <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/24jobsalerts_logo.png"
+                src={assetUrl("/24jobsalerts_logo.png")}
                 alt="24jobsalerts"
                 width={140}
                 height={36}
