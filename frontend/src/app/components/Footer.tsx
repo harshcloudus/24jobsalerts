@@ -2,13 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function Footer() {
+  const BASE_PATH = "/24jobsalert";
   return (
     <footer className="bg-white border-t-2 border-charcoal pt-16 pb-8 mt-20">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
         <div>
           <div className="flex items-center gap-2 text-primary mb-6">
             <Image
-              src="/24jobsalerts_logo.png"
+              src={`${BASE_PATH}/24jobsalerts_logo.png`}
               alt="24jobsalerts"
               width={160}
               height={40}

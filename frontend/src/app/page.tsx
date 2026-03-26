@@ -17,6 +17,7 @@ export default function Home() {
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [loadingAll, setLoadingAll] = useState(true);
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+  const BASE_PATH = "/24jobsalert";
 
   const getJobTypeIcon = (type: string) => {
     const t = type.toLowerCase();
@@ -139,7 +140,7 @@ export default function Home() {
           <div className="text-center mb-10">
             <div className="mb-6 flex justify-center">
               <Image
-                src="/24jobsalerts_logo.png"
+                src={`${BASE_PATH}/24jobsalerts_logo.png`}
                 alt="24jobsalerts"
                 width={900}
                 height={220}

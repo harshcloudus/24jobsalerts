@@ -9,6 +9,7 @@ export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const closeMenu = () => setIsOpen(false);
+  const BASE_PATH = "/24jobsalert";
 
   const linkClass = (href: string) => {
     const base = "text-sm font-bold transition-colors";
@@ -27,7 +28,7 @@ export default function Header() {
           <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/24jobsalerts_logo.png"
+                src={`${BASE_PATH}/24jobsalerts_logo.png`}
                 alt="24jobsalerts"
                 width={140}
                 height={36}
