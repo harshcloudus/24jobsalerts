@@ -28,8 +28,6 @@ class JobDetail(JobSummary):
     requirement_text: Optional[str] = None
     last_date_text: Optional[str] = None
     tables_json: Optional[List[Any]] = None
-    search_by_qualification_json: Optional[List[Any]] = None
-    search_by_type_json: Optional[List[Any]] = None
     related_jobs_json: Optional[List[Any]] = None
     created_at: Optional[datetime] = None
 
