@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import re
 import sqlite3
 from pathlib import Path
@@ -225,5 +226,84 @@ def parse_job_page(html: str, url: str) -> Dict[str, Any]:
             if text and "jobkaka.com" in href:
                 data["related_jobs"].append({"title": text, "url": href})
 
+    # Only additional behavior: rewrite intro_text with AI after scraping is complete.
+    data["intro_text"] = rewrite_intro_text(
+        raw_intro_text=data.get("intro_text"),
+        title=data.get("title"),
+        url=url,
+    )
+
     return data
+
+
+def rewrite_intro_text(
+    raw_intro_text: Optional[str],
+    title: Optional[str],
+    url: str,
+) -> Optional[str]:
+    enabled = (os.getenv("INTRO_REWRITE_ENABLED") or "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if not enabled:
+        print("[intro_rewrite] disabled via INTRO_REWRITE_ENABLED env")
+        return raw_intro_text
+    if not raw_intro_text or not raw_intro_text.strip():
+        print("[intro_rewrite] skipped: empty intro_text")
+        return raw_intro_text
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("[intro_rewrite] skipped: GEMINI_API_KEY not set")
+        return raw_intro_text
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=os.getenv("GEMINI_BASE_URL")
+            or "https://generativelanguage.googleapis.com/v1beta/openai/",
+            api_key=api_key,
+        )
+
+        prompt = (
+            f"Below is a scraped intro paragraph from a job posting titled \"{title or 'Unknown'}\".\n\n"
+            f"---\n{raw_intro_text.strip()}\n---\n\n"
+            "Rewrite the above intro in your own words. "
+            "Preserve every fact but use completely different phrasing. "
+            "Write in clear, natural English as a human editor would. "
+            "Use proper paragraph structure. Do not use bullet points, headings, or markdown. "
+            "Output only the rewritten intro text, nothing else."
+        )
+
+        max_tokens = int(os.getenv("INTRO_REWRITE_MAX_TOKENS") or "8192")
+        model = os.getenv("INTRO_REWRITE_MODEL") or "gemini-2.5-flash"
+        print(f"[intro_rewrite] calling {model} (max_tokens={max_tokens})")
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=float(os.getenv("INTRO_REWRITE_TEMPERATURE") or "0.7"),
+            top_p=float(os.getenv("INTRO_REWRITE_TOP_P") or "0.95"),
+            max_tokens=max_tokens,
+        )
+        out = (resp.choices[0].message.content or "").strip()
+        print(f"[intro_rewrite] raw model output ({len(out)} chars):\n{out}")
+
+        if not out or len(out) < 40:
+            print("[intro_rewrite] response too short or empty, falling back")
+            return raw_intro_text
+
+        out = re.sub(r"\r\n?", "\n", out)
+        out = re.sub(r"\n{3,}", "\n\n", out)
+        out = "\n\n".join(
+            " ".join(line.split()) for line in out.split("\n\n") if line.strip()
+        )
+
+        print(f"[intro_rewrite] rewrite successful ({len(out)} chars)")
+        return out
+    except Exception as exc:
+        print(f"[intro_rewrite] ERROR: {exc!r}, falling back to raw intro")
+        return raw_intro_text
 
