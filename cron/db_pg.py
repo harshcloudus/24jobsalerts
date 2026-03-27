@@ -50,8 +50,6 @@ def init_db():
             official_site TEXT,
             category TEXT,
             tables_json JSONB,
-            search_by_qualification_json JSONB,
-            search_by_type_json JSONB,
             related_jobs_json JSONB,
             -- created_at must be present on every row
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -99,8 +97,6 @@ def upsert_job(job: dict):
             last_date_text,
             category,
             tables_json,
-            search_by_qualification_json,
-            search_by_type_json,
             related_jobs_json
         )
         VALUES (
@@ -119,8 +115,6 @@ def upsert_job(job: dict):
             %(last_date_text)s,
             %(category)s,
             %(tables_json)s,
-            %(search_by_qualification_json)s,
-            %(search_by_type_json)s,
             %(related_jobs_json)s
         )
         ON CONFLICT (url) DO UPDATE SET
@@ -138,8 +132,6 @@ def upsert_job(job: dict):
             last_date_text = EXCLUDED.last_date_text,
             category = EXCLUDED.category,
             tables_json = EXCLUDED.tables_json,
-            search_by_qualification_json = EXCLUDED.search_by_qualification_json,
-            search_by_type_json = EXCLUDED.search_by_type_json,
             related_jobs_json = EXCLUDED.related_jobs_json
         """,
         {
@@ -158,8 +150,6 @@ def upsert_job(job: dict):
             "last_date_text": job.get("last_date_text"),
             "category": job.get("category"),
             "tables_json": json.dumps(job.get("tables", [])),
-            "search_by_qualification_json": json.dumps(job.get("search_by_qualification", [])),
-            "search_by_type_json": json.dumps(job.get("search_by_type", [])),
             "related_jobs_json": json.dumps(job.get("related_jobs", [])),
         },
     )

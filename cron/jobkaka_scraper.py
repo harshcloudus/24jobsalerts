@@ -18,53 +18,49 @@ def fetch_page(url: str) -> str:
 
 def _extract_meta_and_intro(h1: Tag) -> Dict[str, Any]:
     """
-    From just under the title, extract:
-    - meta line (date, job type, qualification)
-    - intro text (main description)
+    Walk all elements after the article h1 until the first h2/h3.
+    - First text matching the date pattern = meta line
+    - All <p> tags after that (excluding 'Advertisements') = intro text
     """
-    meta_line: Optional[str] = None
-    intro_paras: List[str] = []
-
-    for sib in h1.next_siblings:
-        if isinstance(sib, Tag) and sib.name in ("h2", "h3"):
-            break
-        if isinstance(sib, Tag):
-            text = sib.get_text(strip=True)
-        else:
-            text = str(sib).strip()
-        if not text:
-            continue
-
-        if meta_line is None:
-            meta_line = text
-        else:
-            if isinstance(sib, Tag) and sib.name == "p":
-                intro_paras.append(text)
-
     posted_date = None
     job_type = None
     qualification = None
+    meta_found = False
+    intro_paras: List[str] = []
 
-    if meta_line:
-        # e.g. "26 December 2023 Government Job  12th Pass"
-        m = re.match(r"^(\d{1,2}\s+\w+\s+\d{4})\s*(.*)$", meta_line)
-        if m:
-            posted_date = m.group(1)
-            rest = m.group(2).strip()
-            if rest:
-                idx = rest.find("Job")
-                if idx != -1:
-                    job_type = rest[: idx + 3].strip()
-                    qualification = rest[idx + 3 :].strip()
-                else:
-                    qualification = rest
+    for el in h1.find_all_next():
+        if not isinstance(el, Tag):
+            continue
+        if el.name in ("h2", "h3"):
+            break
+
+        text = el.get_text(strip=True)
+        if not text or text.lower() == "advertisements":
+            continue
+
+        if not meta_found:
+            m = re.match(r"^(\d{1,2}\s+\w+\s+\d{4})\s*(.*)$", text)
+            if m:
+                posted_date = m.group(1)
+                rest = m.group(2).strip()
+                if rest:
+                    idx = rest.find("Job")
+                    if idx != -1:
+                        job_type = rest[: idx + 3].strip()
+                        qualification = rest[idx + 3 :].strip()
+                    else:
+                        qualification = rest
+                meta_found = True
+            continue
+
+        if el.name == "p":
+            intro_paras.append(text)
 
     return {
         "posted_date": posted_date,
         "job_type": job_type,
         "qualification": qualification,
         "intro_text": " ".join(intro_paras) if intro_paras else None,
-        "meta_line": meta_line,
     }
 
 
@@ -87,12 +83,12 @@ def parse_job_page(html: str, url: str) -> Dict[str, Any]:
         "application_fee": None,
         "selection_process": None,
         "official_site": None,
-        "last_date": None,
-        "apply_text": None,
+        "official_site_text": None,
+        "eligibility_text": None,
+        "requirement_text": None,
+        "last_date_text": None,
         "tables": [],
         "category": None,
-        "search_by_qualification": [],
-        "search_by_type": [],
         "related_jobs": [],
     }
 
@@ -115,38 +111,61 @@ def parse_job_page(html: str, url: str) -> Dict[str, Any]:
             data["application_fee"] = p
         if "selection process of candidates" in lower and data["selection_process"] is None:
             data["selection_process"] = p
-        if "application for this job" in lower and data["apply_text"] is None:
-            data["apply_text"] = p
         if "last date of online application" in lower or "last date of offline application" in lower:
-            if data["last_date"] is None:
-                data["last_date"] = p
+            if data["last_date_text"] is None:
+                data["last_date_text"] = p
 
-    # Try to detect official site from any paragraph mentioning "official website"
-    for p in paragraphs:
-        lower = p.lower()
-        if "official website" in lower or "official site" in lower:
-            m = re.search(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", p)
-            if m:
-                site = m.group(1)
-                if not site.startswith("http"):
-                    site = "https://" + site
-                data["official_site"] = site
-                break
+    # requirement_text & eligibility_text from the "Eligibility / Requirements" section
+    elig_heading = None
+    for heading in soup.find_all(["h2", "h3"]):
+        htxt = heading.get_text().lower()
+        if "eligibility" in htxt or "requirement" in htxt:
+            elig_heading = heading
+            break
 
-    # If intro_text is still empty, build it from the first block of paragraphs
-    # before any main section heading (h2/h3). This matches the "intro text"
-    # area you highlighted in the screenshot.
-    if not data["intro_text"]:
-        intro_paras: List[str] = []
-        for p_tag in all_p_tags:
-            # stop when we reach first h2/h3 above this paragraph (section start)
-            if p_tag.find_previous(["h2", "h3"]):
+    if elig_heading:
+        seen_table = False
+        for sib in elig_heading.find_all_next():
+            if not isinstance(sib, Tag):
+                continue
+            if sib.name in ("h2",) and sib != elig_heading:
                 break
-            txt = p_tag.get_text(strip=True)
-            if txt:
-                intro_paras.append(txt)
-        if intro_paras:
-            data["intro_text"] = " ".join(intro_paras)
+            if sib.name == "table":
+                seen_table = True
+                continue
+            if sib.name == "p" and sib.get_text(strip=True):
+                if not seen_table and data["requirement_text"] is None:
+                    data["requirement_text"] = sib.get_text(strip=True)
+                elif seen_table and data["eligibility_text"] is None:
+                    data["eligibility_text"] = sib.get_text(strip=True)
+                    break
+
+    # official_site_text: paragraph after the "How to Apply" section's table
+    how_to_apply_heading = None
+    for heading in soup.find_all(["h2", "h3"]):
+        if "how to apply" in heading.get_text().lower():
+            how_to_apply_heading = heading
+            break
+
+    if how_to_apply_heading:
+        for sib in how_to_apply_heading.find_all_next():
+            if not isinstance(sib, Tag):
+                continue
+            if sib.name in ("h2", "h3", "h1"):
+                break
+            if sib.name == "p" and sib.get_text(strip=True):
+                data["official_site_text"] = sib.get_text(strip=True)
+                link = sib.find("a", href=True)
+                if link:
+                    data["official_site"] = link["href"]
+                else:
+                    m = re.search(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", sib.get_text())
+                    if m:
+                        site = m.group(1)
+                        if not site.startswith("http"):
+                            site = "https://" + site
+                        data["official_site"] = site
+                break
 
     # All tables -> combined list
     for table in soup.find_all("table"):
@@ -191,17 +210,6 @@ def parse_job_page(html: str, url: str) -> Dict[str, Any]:
         data["category"] = "structured_job"
     else:
         data["category"] = "article"
-
-    # Search-by links
-    for a in soup.find_all("a", href=True):
-        text = a.get_text(strip=True)
-        if not text:
-            continue
-        href = urljoin(url, a["href"])
-        if "Pass Jobs" in text:
-            data["search_by_qualification"].append({"label": text, "url": href})
-        elif text.endswith("Jobs"):
-            data["search_by_type"].append({"label": text, "url": href})
 
     # Related jobs
     related_heading = None
