@@ -17,7 +17,7 @@ export default function Home() {
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [loadingAll, setLoadingAll] = useState(true);
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
-  const BASE_PATH = "/24jobsalert";
+  const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 
   const getJobTypeIcon = (type: string) => {
     const t = type.toLowerCase();

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
+
 export default function Footer() {
-  const BASE_PATH = "/24jobsalert";
   return (
     <footer className="bg-white border-t-2 border-charcoal pt-16 pb-8 mt-20">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">

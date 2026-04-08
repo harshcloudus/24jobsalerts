@@ -5,11 +5,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
+
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const closeMenu = () => setIsOpen(false);
-  const BASE_PATH = "/24jobsalert";
 
   const linkClass = (href: string) => {
     const base = "text-sm font-bold transition-colors";

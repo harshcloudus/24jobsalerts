@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   description:
     "24jobsalerts helps you find the right government and private jobs faster with clean, structured job alerts and details.",
   icons: {
-    icon: "/24jobsalert/24jobsalerts_favicon.png",
-    apple: "/24jobsalert/24jobsalerts_favicon.png",
+    icon: "/24jobsalerts_favicon.png",
+    apple: "/24jobsalerts_favicon.png",
   },
 };
 
