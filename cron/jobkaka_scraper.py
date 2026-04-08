@@ -226,38 +226,50 @@ def parse_job_page(html: str, url: str) -> Dict[str, Any]:
             if text and "jobkaka.com" in href:
                 data["related_jobs"].append({"title": text, "url": href})
 
-    # Only additional behavior: rewrite intro_text with AI after scraping is complete.
-    data["intro_text"] = rewrite_intro_text(
-        raw_intro_text=data.get("intro_text"),
-        title=data.get("title"),
-        url=url,
-    )
+    ai_rewrite_fields(data, url)
 
     return data
 
 
-def rewrite_intro_text(
-    raw_intro_text: Optional[str],
-    title: Optional[str],
-    url: str,
-) -> Optional[str]:
+# ── AI rewrite ──────────────────────────────────────────────────────
+
+_REWRITE_FIELDS = [
+    "title",
+    "intro_text",
+    "application_fee",
+    "selection_process",
+    "official_site_text",
+    "eligibility_text",
+    "requirement_text",
+    "last_date_text",
+]
+
+
+def ai_rewrite_fields(data: Dict[str, Any], url: str) -> None:
+    """Rewrite multiple scraped text fields in-place via a single Gemini call."""
     enabled = (os.getenv("INTRO_REWRITE_ENABLED") or "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
+        "1", "true", "yes", "on",
     }
     if not enabled:
-        print("[intro_rewrite] disabled via INTRO_REWRITE_ENABLED env")
-        return raw_intro_text
-    if not raw_intro_text or not raw_intro_text.strip():
-        print("[intro_rewrite] skipped: empty intro_text")
-        return raw_intro_text
+        print("[ai_rewrite] disabled via INTRO_REWRITE_ENABLED env")
+        return
 
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("[intro_rewrite] skipped: GEMINI_API_KEY not set")
-        return raw_intro_text
+        print("[ai_rewrite] skipped: GEMINI_API_KEY not set")
+        return
+
+    to_rewrite: Dict[str, str] = {}
+    for field in _REWRITE_FIELDS:
+        val = data.get(field)
+        if val and val.strip():
+            to_rewrite[field] = val.strip()
+
+    if not to_rewrite:
+        print("[ai_rewrite] no fields to rewrite, skipping")
+        return
+
+    print(f"[ai_rewrite] fields to rewrite: {list(to_rewrite.keys())}")
 
     try:
         from openai import OpenAI
@@ -268,19 +280,30 @@ def rewrite_intro_text(
             api_key=api_key,
         )
 
+        fields_block = "\n\n".join(
+            f"### {field}\n{text}" for field, text in to_rewrite.items()
+        )
+
         prompt = (
-            f"Below is a scraped intro paragraph from a job posting titled \"{title or 'Unknown'}\".\n\n"
-            f"---\n{raw_intro_text.strip()}\n---\n\n"
-            "Rewrite the above intro in your own words. "
-            "Preserve every fact but use completely different phrasing. "
-            "Write in clear, natural English as a human editor would. "
-            "Use proper paragraph structure. Do not use bullet points, headings, or markdown. "
-            "Output only the rewritten intro text, nothing else."
+            "Below are scraped text fields from a job posting.\n\n"
+            f"{fields_block}\n\n"
+            "Rewrite EVERY field above in your own words. Rules:\n"
+            "- Preserve every fact (names, dates, numbers, URLs, amounts) exactly as-is.\n"
+            "- Use completely different phrasing from the original.\n"
+            "- Write in clear, natural English as a professional human editor would.\n"
+            '- For "title": keep it concise, one line, no extra commentary.\n'
+            "- For paragraph fields: use proper paragraph structure. No bullet points, headings, or markdown.\n"
+            "- Do NOT add any new information that is not in the original.\n"
+            "- Do NOT skip any field.\n\n"
+            "Respond with ONLY a valid JSON object mapping each field name to its rewritten text.\n"
+            "Example format:\n"
+            '{"title": "rewritten title", "intro_text": "rewritten intro"}\n'
         )
 
         max_tokens = int(os.getenv("INTRO_REWRITE_MAX_TOKENS") or "8192")
         model = os.getenv("INTRO_REWRITE_MODEL") or "gemini-2.5-flash"
-        print(f"[intro_rewrite] calling {model} (max_tokens={max_tokens})")
+        print(f"[ai_rewrite] calling {model} (max_tokens={max_tokens})")
+
         resp = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
@@ -288,22 +311,45 @@ def rewrite_intro_text(
             top_p=float(os.getenv("INTRO_REWRITE_TOP_P") or "0.95"),
             max_tokens=max_tokens,
         )
-        out = (resp.choices[0].message.content or "").strip()
-        print(f"[intro_rewrite] raw model output ({len(out)} chars):\n{out}")
+        raw_out = (resp.choices[0].message.content or "").strip()
+        print(f"[ai_rewrite] raw model output ({len(raw_out)} chars):\n{raw_out}")
 
-        if not out or len(out) < 40:
-            print("[intro_rewrite] response too short or empty, falling back")
-            return raw_intro_text
+        if not raw_out:
+            print("[ai_rewrite] empty response, keeping originals")
+            return
 
-        out = re.sub(r"\r\n?", "\n", out)
-        out = re.sub(r"\n{3,}", "\n\n", out)
-        out = "\n\n".join(
-            " ".join(line.split()) for line in out.split("\n\n") if line.strip()
-        )
+        cleaned = re.sub(r"^```(?:json)?\s*", "", raw_out)
+        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
 
-        print(f"[intro_rewrite] rewrite successful ({len(out)} chars)")
-        return out
+        result = json.loads(cleaned)
+
+        updated = 0
+        for field, rewritten in result.items():
+            if field not in to_rewrite:
+                continue
+            if not rewritten or not isinstance(rewritten, str):
+                continue
+            text = rewritten.strip()
+            if len(text) < 10:
+                print(f"[ai_rewrite] {field}: too short ({len(text)} chars), keeping original")
+                continue
+            text = re.sub(r"\r\n?", "\n", text)
+            text = re.sub(r"\n{3,}", "\n\n", text)
+            text = "\n\n".join(
+                " ".join(line.split()) for line in text.split("\n\n") if line.strip()
+            )
+            data[field] = text
+            updated += 1
+            print(f"[ai_rewrite] {field}: rewritten ({len(text)} chars)")
+
+        missing = set(to_rewrite.keys()) - set(result.keys())
+        if missing:
+            print(f"[ai_rewrite] model skipped fields (keeping originals): {missing}")
+
+        print(f"[ai_rewrite] done — {updated}/{len(to_rewrite)} fields rewritten")
+
+    except json.JSONDecodeError as exc:
+        print(f"[ai_rewrite] JSON parse error: {exc!r}, keeping all originals")
     except Exception as exc:
-        print(f"[intro_rewrite] ERROR: {exc!r}, falling back to raw intro")
-        return raw_intro_text
+        print(f"[ai_rewrite] ERROR: {exc!r}, keeping all originals")
 
