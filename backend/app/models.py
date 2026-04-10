@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, Text
+from sqlalchemy import Column, DateTime, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .database import Base
@@ -25,3 +25,11 @@ class Job(Base):
     eligibility_text = Column(Text)
     requirement_text = Column(Text)
     last_date_text = Column(Text)
+
+
+class NewsletterSubscriber(Base):
+    __tablename__ = "newsletter_subscribers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(Text, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())

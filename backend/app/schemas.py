@@ -44,3 +44,12 @@ class FilterOptions(BaseModel):
     qualifications: List[str]
     categories: List[str]
 
+
+class NewsletterSubscribeRequest(BaseModel):
+    email: str
+
+
+class NewsletterSubscribeResponse(BaseModel):
+    ok: bool
+    created: bool
+

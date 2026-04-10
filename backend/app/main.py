@@ -1,14 +1,24 @@
+import re
 from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import settings
 from .crud.jobs import distinct_filters, get_job as get_job_crud, list_jobs
 from .database import Base, engine
 from .deps import get_db
-from .schemas import FilterOptions, JobDetail, JobListResponse, JobSummary
+from .models import NewsletterSubscriber
+from .schemas import (
+    FilterOptions,
+    JobDetail,
+    JobListResponse,
+    JobSummary,
+    NewsletterSubscribeRequest,
+    NewsletterSubscribeResponse,
+)
 
 Base.metadata.bind = engine
 
@@ -26,6 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Base.metadata.create_all(bind=engine)
 
 
 def extract_salary_from_tables(tables_json: Any) -> Optional[str]:
@@ -137,3 +149,28 @@ def api_filters(db: Session = Depends(get_db)):
         qualifications=[q for q in qualifications if q],
         categories=[c for c in categories if c],
     )
+
+
+def _is_valid_email(email: str) -> bool:
+    # Lightweight validation; avoids extra dependencies.
+    email = (email or "").strip()
+    if len(email) < 6 or len(email) > 254:
+        return False
+    return re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email) is not None
+
+
+@app.post("/api/newsletter/subscribe", response_model=NewsletterSubscribeResponse)
+def newsletter_subscribe(payload: NewsletterSubscribeRequest, db: Session = Depends(get_db)):
+    email = (payload.email or "").strip().lower()
+    if not _is_valid_email(email):
+        raise HTTPException(status_code=400, detail="Invalid email")
+
+    sub = NewsletterSubscriber(email=email)
+    db.add(sub)
+    try:
+        db.commit()
+        return NewsletterSubscribeResponse(ok=True, created=True)
+    except IntegrityError:
+        db.rollback()
+        # already subscribed
+        return NewsletterSubscribeResponse(ok=True, created=False)
