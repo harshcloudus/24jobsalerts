@@ -189,7 +189,7 @@ export default function Home() {
       </header>
 
       {/* Job Type Section */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">Job Types</h3>
           <Link className="text-primary text-sm font-black flex items-center gap-1 hover:underline" href="/job-types">VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span></Link>
@@ -220,7 +220,7 @@ export default function Home() {
       </section>
 
       {/* Qualification Section */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">Jobs by Qualification</h3>
           <Link
@@ -254,25 +254,28 @@ export default function Home() {
       </section>
 
       {/* All Jobs Section */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">
+          <h3 className="text-xl md:text-2xl font-black text-charcoal uppercase tracking-tight">
             All Job Openings
           </h3>
           <Link
             href="/all-jobs"
             className="text-primary text-sm font-black flex items-center gap-1 hover:underline"
           >
-            VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span>
+            VIEW ALL{" "}
+            <span className="material-symbols-outlined text-xs">
+              arrow_forward
+            </span>
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {loadingAll ? (
-            <div className="col-span-full text-sm font-bold underline">
+            <div className="col-span-full text-sm font-bold underline text-center">
               Loading jobs...
             </div>
           ) : allJobs.length === 0 ? (
-            <div className="col-span-full text-sm font-bold italic">
+            <div className="col-span-full text-sm font-bold italic text-center">
               No jobs found.
             </div>
           ) : (
