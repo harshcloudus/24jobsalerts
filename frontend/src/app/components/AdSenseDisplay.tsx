@@ -19,6 +19,8 @@ type Props = {
   className?: string;
   wrapperClassName?: string;
   minHeightClassName?: string;
+  /** Optional: hide if still empty after this many ms (keeps visible while loading). */
+  hideIfEmptyAfterMs?: number;
 };
 
 const outerClass: Record<Variant, string> = {
@@ -32,6 +34,7 @@ export default function AdSenseDisplay({
   className = "",
   wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
+  hideIfEmptyAfterMs = 8000,
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
@@ -76,20 +79,32 @@ export default function AdSenseDisplay({
       }
     }, 500);
 
-    const statusTimeout = window.setTimeout(() => {
-      window.clearInterval(statusInterval);
-      const el = insRef.current;
-      const status = el?.getAttribute("data-ad-status");
-      if (status !== "filled") {
-        setHidden(true);
-      }
-    }, 6000);
+    const hasIframe = () => {
+      const el = insRef.current as unknown as HTMLElement | null;
+      if (!el) return false;
+      return Boolean(el.querySelector("iframe"));
+    };
+
+    const emptyTimeout =
+      hideIfEmptyAfterMs && hideIfEmptyAfterMs > 0
+        ? window.setTimeout(() => {
+            const el = insRef.current;
+            const status = el?.getAttribute("data-ad-status");
+            if (status === "filled") return;
+            if (status === "unfilled") {
+              setHidden(true);
+              return;
+            }
+            // If AdSense never sets status but also never renders an iframe, hide the empty box.
+            if (!hasIframe()) setHidden(true);
+          }, hideIfEmptyAfterMs)
+        : undefined;
 
     return () => {
       if (pushInterval) window.clearInterval(pushInterval);
       window.clearTimeout(pushTimeout);
       window.clearInterval(statusInterval);
-      window.clearTimeout(statusTimeout);
+      if (emptyTimeout) window.clearTimeout(emptyTimeout);
     };
   }, []);
 

@@ -47,7 +47,7 @@ export default function Home() {
     const trimmed = (label || "").trim();
     const long = trimmed.length > 14;
     const mobileSize = long ? "text-[9px]" : "text-[10px]";
-    return `${mobileSize} leading-[1.05] sm:leading-tight sm:text-sm font-black uppercase italic tracking-tighter text-center text-charcoal px-1 whitespace-normal break-all sm:break-words`;
+    return `${mobileSize} leading-[1.1] sm:leading-tight sm:text-sm font-black uppercase italic tracking-tighter text-center text-charcoal px-1 w-full whitespace-normal break-words [overflow-wrap:anywhere]`;
   };
 
   useEffect(() => {
