@@ -44,9 +44,10 @@ export default function RootLayout({
         <SiteTopAd />
         <Header />
         {children}
-        <div className="bg-white py-6 border-t-2 border-charcoal/10">
-          <AdSenseDisplay variant="wide" />
-        </div>
+        <AdSenseDisplay
+          variant="wide"
+          wrapperClassName="bg-white py-6 border-t-2 border-charcoal/10"
+        />
         <Footer />
         <BackToTopButton />
       </body>

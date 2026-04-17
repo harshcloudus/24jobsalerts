@@ -238,7 +238,7 @@ export default function JobDetailPage() {
                 {job.application_fee && (
                   <div>
                     <AdSenseDisplay
-                      variant="narrow"
+                      variant="inline"
                       className="mb-6"
                       minHeightClassName="min-h-[110px] sm:min-h-[120px]"
                     />

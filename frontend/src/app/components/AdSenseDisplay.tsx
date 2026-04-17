@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -12,26 +12,30 @@ const AD_CLIENT =
   process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-1236097872832305";
 const AD_SLOT = process.env.NEXT_PUBLIC_ADSENSE_SLOT || "3547177238";
 
-type Variant = "wide" | "narrow";
+type Variant = "wide" | "narrow" | "inline";
 
 type Props = {
   variant?: Variant;
   className?: string;
+  wrapperClassName?: string;
   minHeightClassName?: string;
 };
 
 const outerClass: Record<Variant, string> = {
   wide: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
   narrow: "max-w-4xl mx-auto px-4",
+  inline: "",
 };
 
 export default function AdSenseDisplay({
   variant = "wide",
   className = "",
+  wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (pushed.current || !insRef.current) return;
@@ -48,23 +52,50 @@ export default function AdSenseDisplay({
       }
     };
 
-    if (tryPush()) return;
-
-    const interval = window.setInterval(() => {
-      if (tryPush()) window.clearInterval(interval);
-    }, 150);
-
-    const timeout = window.setTimeout(() => {
-      window.clearInterval(interval);
+    tryPush();
+    const pushInterval = !pushed.current
+      ? window.setInterval(() => {
+          if (tryPush()) window.clearInterval(pushInterval);
+        }, 150)
+      : undefined;
+    const pushTimeout = window.setTimeout(() => {
+      if (pushInterval) window.clearInterval(pushInterval);
     }, 12000);
 
+    const statusInterval = window.setInterval(() => {
+      const el = insRef.current;
+      if (!el) return;
+      const status = el.getAttribute("data-ad-status");
+      if (status === "filled") {
+        window.clearInterval(statusInterval);
+        return;
+      }
+      if (status === "unfilled") {
+        setHidden(true);
+        window.clearInterval(statusInterval);
+      }
+    }, 500);
+
+    const statusTimeout = window.setTimeout(() => {
+      window.clearInterval(statusInterval);
+      const el = insRef.current;
+      const status = el?.getAttribute("data-ad-status");
+      if (status !== "filled") {
+        setHidden(true);
+      }
+    }, 6000);
+
     return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
+      if (pushInterval) window.clearInterval(pushInterval);
+      window.clearTimeout(pushTimeout);
+      window.clearInterval(statusInterval);
+      window.clearTimeout(statusTimeout);
     };
   }, []);
 
-  return (
+  if (hidden) return null;
+
+  const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
       <div
         className={`${minHeightClassName} w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden`}
@@ -81,4 +112,7 @@ export default function AdSenseDisplay({
       </div>
     </div>
   );
+
+  if (!wrapperClassName) return adBody;
+  return <div className={wrapperClassName}>{adBody}</div>;
 }
