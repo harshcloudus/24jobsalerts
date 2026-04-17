@@ -5,6 +5,8 @@ import "./globals.css";
 import BackToTopButton from "./components/BackToTopButton";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import SiteTopAd from "./components/SiteTopAd";
+import AdSenseDisplay from "./components/AdSenseDisplay";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,8 +41,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} antialiased font-display`}>
+        <SiteTopAd />
         <Header />
         {children}
+        <div className="bg-white py-6 border-t-2 border-charcoal/10">
+          <AdSenseDisplay variant="wide" />
+        </div>
         <Footer />
         <BackToTopButton />
       </body>

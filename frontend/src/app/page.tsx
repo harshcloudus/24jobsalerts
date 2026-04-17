@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import JobCard from "./components/JobCard";
+import AdSenseDisplay from "./components/AdSenseDisplay";
 
 export default function Home() {
   const router = useRouter();
@@ -40,6 +41,13 @@ export default function Home() {
 
   const handleQualification = (qualification: string) => {
     router.push(`/qualifications?qualification=${encodeURIComponent(qualification)}`);
+  };
+
+  const pillLabelClass = (label: string) => {
+    const trimmed = (label || "").trim();
+    const long = trimmed.length > 14;
+    const mobileSize = long ? "text-[9px]" : "text-[10px]";
+    return `${mobileSize} leading-[1.05] sm:leading-tight sm:text-sm font-black uppercase italic tracking-tighter text-center text-charcoal px-1 whitespace-normal break-all sm:break-words`;
   };
 
   useEffect(() => {
@@ -188,13 +196,15 @@ export default function Home() {
         </div>
       </header>
 
+      <AdSenseDisplay variant="wide" className="py-6" />
+
       {/* Job Type Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">Job Types</h3>
           <Link className="text-primary text-sm font-black flex items-center gap-1 hover:underline" href="/job-types">VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span></Link>
         </div>
-        <div className="flex gap-6 overflow-x-auto pb-4 pt-2">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-3 sm:gap-x-6 pt-2 justify-items-center">
           {loadingHomeJobTypes ? (
             <div className="w-full text-center text-sm font-bold underline">Loading...</div>
           ) : homeJobTypes.length === 0 ? (
@@ -205,12 +215,12 @@ export default function Home() {
                 key={type}
                 onClick={() => handleJobType(type)}
                 type="button"
-                className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 sm:w-36 sm:h-36 rounded-2xl border-2 border-charcoal bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] transition-all cursor-pointer"
+                className="flex flex-col items-center justify-center w-full max-w-36 h-28 sm:h-36 rounded-2xl border-2 border-charcoal bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] transition-all cursor-pointer"
               >
-                <span className="material-symbols-outlined text-3xl mb-2 text-primary">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl mb-1 sm:mb-2 text-primary">
                   {getJobTypeIcon(type)}
                 </span>
-                <span className="text-xs sm:text-sm font-black uppercase italic tracking-tighter text-charcoal text-center">
+                <span className={pillLabelClass(type)}>
                   {type}
                 </span>
               </button>
@@ -218,6 +228,8 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      <AdSenseDisplay variant="wide" className="py-2" />
 
       {/* Qualification Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -230,7 +242,7 @@ export default function Home() {
             VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span>
           </Link>
         </div>
-        <div className="flex gap-6 overflow-x-auto pb-4 pt-2">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-3 sm:gap-x-6 pt-2 justify-items-center">
           {loadingHomeQuals ? (
             <div className="w-full text-center text-sm font-bold underline">Loading...</div>
           ) : homeQualifications.length === 0 ? (
@@ -241,10 +253,10 @@ export default function Home() {
                 key={qual}
                 type="button"
                 onClick={() => handleQualification(qual)}
-                className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 sm:w-36 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] cursor-pointer"
+                className="flex flex-col items-center justify-center w-full max-w-36 h-28 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] cursor-pointer"
               >
-                <span className="material-symbols-outlined text-3xl mb-2 text-primary">school</span>
-                <span className="text-[11px] sm:text-sm font-black uppercase italic tracking-tighter text-center text-charcoal">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl mb-1 sm:mb-2 text-primary">school</span>
+                <span className={pillLabelClass(qual)}>
                   {qual}
                 </span>
               </button>
@@ -252,6 +264,8 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      <AdSenseDisplay variant="wide" className="py-2" />
 
       {/* All Jobs Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
