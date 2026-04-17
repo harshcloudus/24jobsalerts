@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import AdSenseDisplay from "../../components/AdSenseDisplay";
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -236,6 +237,11 @@ export default function JobDetailPage() {
               <section className="bg-white border-2 border-charcoal p-8 rounded-2xl shadow-[6px_6px_0px_rgba(26,23,22,1)] space-y-8">
                 {job.application_fee && (
                   <div>
+                    <AdSenseDisplay
+                      variant="narrow"
+                      className="mb-6"
+                      minHeightClassName="min-h-[110px] sm:min-h-[120px]"
+                    />
                     <h3 className="text-xl font-black text-charcoal uppercase italic mb-3 flex items-center gap-2">
                       <span className="material-symbols-outlined">payments</span> Application Fee
                     </h3>

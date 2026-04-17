@@ -17,6 +17,7 @@ type Variant = "wide" | "narrow";
 type Props = {
   variant?: Variant;
   className?: string;
+  minHeightClassName?: string;
 };
 
 const outerClass: Record<Variant, string> = {
@@ -27,6 +28,7 @@ const outerClass: Record<Variant, string> = {
 export default function AdSenseDisplay({
   variant = "wide",
   className = "",
+  minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
@@ -64,7 +66,9 @@ export default function AdSenseDisplay({
 
   return (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
-      <div className="min-h-[120px] w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden">
+      <div
+        className={`${minHeightClassName} w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden`}
+      >
         <ins
           ref={insRef}
           className="adsbygoogle"
