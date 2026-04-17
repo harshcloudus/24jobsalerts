@@ -232,16 +232,16 @@ export default function JobDetailPage() {
               </section>
             ))}
 
+            {/* Ad between previous section and Application Fee box */}
+            {(job.selection_process || job.application_fee) && (
+              <AdSenseDisplay variant="inline" />
+            )}
+
             {/* Selection/Apply Info */}
             {(job.selection_process || job.application_fee) && (
               <section className="bg-white border-2 border-charcoal p-8 rounded-2xl shadow-[6px_6px_0px_rgba(26,23,22,1)] space-y-8">
                 {job.application_fee && (
                   <div>
-                    <AdSenseDisplay
-                      variant="inline"
-                      className="mb-6"
-                      minHeightClassName="min-h-[110px] sm:min-h-[120px]"
-                    />
                     <h3 className="text-xl font-black text-charcoal uppercase italic mb-3 flex items-center gap-2">
                       <span className="material-symbols-outlined">payments</span> Application Fee
                     </h3>
