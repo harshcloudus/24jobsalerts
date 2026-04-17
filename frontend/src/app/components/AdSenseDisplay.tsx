@@ -64,11 +64,11 @@ export default function AdSenseDisplay({
 
   return (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
-      <div className="min-h-[120px] flex items-center justify-center border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden">
+      <div className="min-h-[120px] w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden">
         <ins
           ref={insRef}
           className="adsbygoogle"
-          style={{ display: "block" }}
+          style={{ display: "block", width: "100%" }}
           data-ad-client={AD_CLIENT}
           data-ad-slot={AD_SLOT}
           data-ad-format="auto"
