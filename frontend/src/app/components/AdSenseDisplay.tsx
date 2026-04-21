@@ -21,6 +21,7 @@ type Props = {
   minHeightClassName?: string;
   /** Optional: hide if still empty after this many ms (keeps visible while loading). */
   hideIfEmptyAfterMs?: number;
+  labelText?: string;
 };
 
 const outerClass: Record<Variant, string> = {
@@ -35,6 +36,7 @@ export default function AdSenseDisplay({
   wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
   hideIfEmptyAfterMs = 8000,
+  labelText = "Advertisement",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
@@ -112,6 +114,9 @@ export default function AdSenseDisplay({
 
   const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
+      <div className="mb-2 text-[11px] font-black uppercase tracking-widest text-text-muted/80">
+        {labelText}
+      </div>
       <div
         className={`${minHeightClassName} w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden`}
       >
