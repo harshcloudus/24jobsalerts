@@ -36,7 +36,7 @@ export default function AdSenseDisplay({
   wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
   hideIfEmptyAfterMs = 8000,
-  labelText = "Advertisement",
+  labelText = "Advertisements",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
@@ -114,7 +114,7 @@ export default function AdSenseDisplay({
 
   const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
-      <div className="mb-2 text-[11px] font-black uppercase tracking-widest text-text-muted/80">
+      <div className="mb-2 text-center text-[11px] font-black uppercase tracking-widest text-text-muted/80">
         {labelText}
       </div>
       <div
