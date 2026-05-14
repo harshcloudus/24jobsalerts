@@ -60,35 +60,74 @@ export default function BookmarksPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-900 tracking-tighter text-charcoal mb-2 uppercase italic">
-              Saved Jobs
-            </h1>
-            <p className="text-text-body font-bold">
-              {jobs.length} job{jobs.length === 1 ? "" : "s"} bookmarked in this browser.
-            </p>
+    <div className="bg-canvas">
+      {/* Hero band */}
+      <section className="hero-band-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-6">
+            <div className="min-w-0 flex-1">
+              <div className="section-eyebrow" style={{ color: "var(--color-primary)" }}>
+                Your shortlist
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-on-dark mb-2">
+                Saved jobs
+              </h1>
+              <p className="text-on-dark-muted text-sm sm:text-base md:text-lg">
+                {loading
+                  ? "Loading saved jobs…"
+                  : jobs.length === 0
+                  ? "No jobs saved yet."
+                  : `${jobs.length} job${jobs.length === 1 ? "" : "s"} bookmarked in this browser.`}
+              </p>
+            </div>
+            <Link href="/latest-jobs" className="btn-primary shrink-0">
+              Browse jobs
+              <span className="material-symbols-rounded" style={{ fontSize: "16px" }}>
+                arrow_forward
+              </span>
+            </Link>
           </div>
-          <Link
-            href="/latest-jobs"
-            className="bg-primary text-white border-2 border-charcoal px-5 py-2 rounded-lg text-sm font-black hover:bg-primary-hover transition-all"
-          >
-            Browse Jobs
-          </Link>
         </div>
+      </section>
 
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {loading ? (
-          <div className="border-2 border-charcoal border-dashed rounded-2xl py-16 text-center text-sm font-black">
-            Loading saved jobs...
+          <div className="job-grid">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="card-base p-5 space-y-3">
+                <div className="skeleton h-11 w-11 rounded-lg" />
+                <div className="skeleton h-4 w-3/4 rounded" />
+                <div className="skeleton h-3 w-1/2 rounded" />
+                <div className="skeleton h-3 w-2/3 rounded" />
+              </div>
+            ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="border-2 border-charcoal border-dashed rounded-2xl py-16 text-center font-black uppercase">
-            No saved jobs found.
+          <div className="card-base p-10 text-center max-w-xl mx-auto">
+            <div className="w-14 h-14 rounded-full bg-primary-light mx-auto mb-4 flex items-center justify-center">
+              <span
+                className="material-symbols-rounded text-primary"
+                style={{ fontSize: "26px", fontVariationSettings: "'FILL' 1" }}
+              >
+                bookmark
+              </span>
+            </div>
+            <h2 className="text-lg font-semibold text-ink mb-2">
+              No saved jobs yet
+            </h2>
+            <p className="text-sm text-text-body mb-6 leading-relaxed">
+              Tap the bookmark icon on any job to add it here. Your saved jobs
+              stay in this browser — no account needed.
+            </p>
+            <Link href="/latest-jobs" className="btn-primary">
+              Browse latest jobs
+              <span className="material-symbols-rounded" style={{ fontSize: "16px" }}>
+                arrow_forward
+              </span>
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="job-grid">
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} />
             ))}
@@ -98,4 +137,3 @@ export default function BookmarksPage() {
     </div>
   );
 }
-

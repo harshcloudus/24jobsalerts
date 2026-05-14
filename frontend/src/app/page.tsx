@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import JobCard from "./components/JobCard";
 import AdSenseDisplay from "./components/AdSenseDisplay";
+import { getQualificationIcon } from "@/lib/qualificationIcons";
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(
+  /\/$/,
+  ""
+);
+
 
 export default function Home() {
   const router = useRouter();
@@ -17,8 +23,6 @@ export default function Home() {
   const [loadingLatest, setLoadingLatest] = useState(true);
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [loadingAll, setLoadingAll] = useState(true);
-  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
-  const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 
   const getJobTypeIcon = (type: string) => {
     const t = type.toLowerCase();
@@ -43,13 +47,6 @@ export default function Home() {
     router.push(`/qualifications?qualification=${encodeURIComponent(qualification)}`);
   };
 
-  const pillLabelClass = (label: string) => {
-    const trimmed = (label || "").trim();
-    const long = trimmed.length > 14;
-    const mobileSize = long ? "text-[9px]" : "text-[10px]";
-    return `${mobileSize} leading-[1.1] sm:leading-tight sm:text-sm font-black uppercase italic tracking-tighter text-center text-charcoal px-1 w-full whitespace-normal break-words [overflow-wrap:anywhere]`;
-  };
-
   useEffect(() => {
     async function fetchFilters() {
       setLoadingHomeQuals(true);
@@ -61,28 +58,16 @@ export default function Home() {
         const quals: string[] = data.qualifications || [];
         const types: string[] = data.job_types || [];
 
-        // Same order as Qualifications page (backend order)
         setHomeQualifications(quals);
 
-        // Same ordering logic as Job Types page
         const orderedTypes = [...types].sort((a, b) => {
           const norm = (s: string) => s.toLowerCase().trim();
           const aNorm = norm(a);
           const bNorm = norm(b);
-
           const aScore =
-            aNorm === "government job"
-              ? 0
-              : aNorm === "private job"
-              ? 1
-              : 2;
+            aNorm === "government job" ? 0 : aNorm === "private job" ? 1 : 2;
           const bScore =
-            bNorm === "government job"
-              ? 0
-              : bNorm === "private job"
-              ? 1
-              : 2;
-
+            bNorm === "government job" ? 0 : bNorm === "private job" ? 1 : 2;
           if (aScore !== bScore) return aScore - bScore;
           return a.localeCompare(b);
         });
@@ -139,157 +124,245 @@ export default function Home() {
     fetchAll();
   }, []);
 
+  const handleHeroSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const search = (fd.get("search") as string)?.trim();
+    const qualification = (fd.get("qualification") as string)?.trim();
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (qualification) params.set("qualification", qualification);
+    router.push(`/latest-jobs${params.toString() ? `?${params}` : ""}`);
+  };
+
   return (
     <>
-      {/* Hero Section */}
-      <header className="relative overflow-hidden pt-12 pb-6 lg:pt-16 lg:pb-6 bg-white">
-        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/5 to-white pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center mb-10">
-            <div className="mb-6 flex justify-center">
-              <Image
-                src={`${BASE_PATH}/24jobsalerts_logo.png`}
-                alt="24jobsalerts"
-                width={900}
-                height={220}
-                priority
-                className="w-[185px] sm:w-[280px] md:w-[360px] lg:w-[450px] h-auto"
-              />
-            </div>
-            <p className="text-lg md:text-xl text-text-body max-w-2xl mx-auto mb-8 font-medium">
-              Find the right job faster. Access thousands of premium opportunities from top-tier companies and government sectors.
-            </p>
+      {/* ===== HERO ===== */}
+      <section className="hero-home">
+        <div className="hero-bg" />
+        <div className="hero-grid-overlay" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 text-center">
+
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-white/[0.06] px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-[13px] text-on-dark mb-4 sm:mb-5 max-w-full">
+            <span className="hero-badge-dot" />
+            <span className="hidden sm:inline">Updated daily ·</span>
+            <span className="sm:hidden">Daily ·</span>
+            <span className="hero-badge-chip whitespace-nowrap">2,438 this week</span>
           </div>
 
-          {/* Hero Latest Jobs (4 cards) */}
-          <div className="mt-0">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl md:text-2xl font-black text-charcoal uppercase tracking-tight">
-                Latest Job Openings
-              </h3>
-              <Link
-                href="/latest-jobs"
-                className="text-primary text-sm font-black flex items-center gap-1 hover:underline"
-              >
-                VIEW ALL{" "}
-                <span className="material-symbols-outlined text-xs">
-                  arrow_forward
-                </span>
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {loadingLatest ? (
-                <div className="col-span-full text-sm font-bold underline text-center">
-                  Loading latest jobs...
-                </div>
-              ) : latestJobs.length === 0 ? (
-                <div className="col-span-full text-sm font-bold italic text-center">
-                  No recent jobs found.
-                </div>
-              ) : (
-                latestJobs.map((job, idx) => (
-                  <JobCard key={idx} job={job} />
-                ))
-              )}
-            </div>
+          {/* Heading */}
+          <h1 className="hero-heading">
+            Every job alert,{" "}
+            <span className="text-primary italic font-medium">friendlier.</span>
+          </h1>
+
+          {/* Sub */}
+          <p className="text-[14px] sm:text-[17px] text-on-dark-muted leading-[1.55] max-w-[60ch] mx-auto mb-6 sm:mb-7 px-1 sm:px-2">
+            Verified government, banking, railway and private listings —
+            sorted, searchable, and saved before the deadline catches you off
+            guard.
+          </p>
+
+          {/* Search bar — dual field */}
+          <form className="hero-search-bar" onSubmit={handleHeroSearch}>
+            <label className="hero-search-field">
+              <span className="material-symbols-rounded" style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}>search</span>
+              <input type="text" name="search" placeholder="Job title, exam, or employer" />
+            </label>
+            <span className="hero-search-divider" aria-hidden />
+            <label className="hero-search-field">
+              <span className="material-symbols-rounded" style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}>tune</span>
+              <input type="text" name="qualification" placeholder="Qualification or type" />
+            </label>
+            <button className="btn-primary" type="submit">
+              <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>search</span>
+              Find jobs
+            </button>
+          </form>
+
+          {/* Trust bar — credibility stats */}
+          <div className="hero-trust-bar">
+            <span className="hero-trust-item">
+              <span className="material-symbols-rounded">verified</span>
+              14,832 verified listings
+            </span>
+            <span className="hero-trust-divider" />
+            <span className="hero-trust-item">
+              <span className="material-symbols-rounded">groups</span>
+              2.6M monthly seekers
+            </span>
+            <span className="hero-trust-divider" />
+            <span className="hero-trust-item">
+              <span className="material-symbols-rounded">schedule</span>
+              Updated every morning
+            </span>
           </div>
         </div>
-      </header>
+      </section>
 
       <AdSenseDisplay variant="wide" className="py-6" />
 
-      {/* Job Type Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">Job Types</h3>
-          <Link className="text-primary text-sm font-black flex items-center gap-1 hover:underline" href="/job-types">VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span></Link>
+      {/* ===== LATEST JOBS ===== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+          <div>
+            <div className="section-eyebrow">Fresh today</div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+              Latest job openings
+            </h2>
+          </div>
+          <Link href="/latest-jobs" className="view-all">
+            View all
+            <span className="material-symbols-rounded">arrow_forward</span>
+          </Link>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-3 sm:gap-x-6 pt-2 justify-items-center">
-          {loadingHomeJobTypes ? (
-            <div className="w-full text-center text-sm font-bold underline">Loading...</div>
-          ) : homeJobTypes.length === 0 ? (
-            <div className="w-full text-center text-sm font-bold italic">No data.</div>
-          ) : (
-            homeJobTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => handleJobType(type)}
-                type="button"
-                className="flex flex-col items-center justify-center w-full max-w-36 h-28 sm:h-36 rounded-2xl border-2 border-charcoal bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-2xl sm:text-3xl mb-1 sm:mb-2 text-primary">
-                  {getJobTypeIcon(type)}
-                </span>
-                <span className={pillLabelClass(type)}>
-                  {type}
-                </span>
-              </button>
+
+        <div className="job-grid">
+          {loadingLatest ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="card-base p-5 space-y-3">
+                <div className="skeleton h-8 w-8 rounded-lg" />
+                <div className="skeleton h-4 w-3/4 rounded" />
+                <div className="skeleton h-3 w-1/2 rounded" />
+                <div className="skeleton h-3 w-2/3 rounded" />
+              </div>
             ))
+          ) : latestJobs.length === 0 ? (
+            <div className="col-span-full text-center text-text-muted py-10 card-base">
+              No recent jobs found.
+            </div>
+          ) : (
+            latestJobs.map((job, idx) => <JobCard key={idx} job={job} />)
           )}
         </div>
       </section>
 
-      <AdSenseDisplay variant="wide" className="py-2" />
+      {/* ===== JOB TYPES ===== */}
+      <section className="bg-surface border-y border-hairline">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+            <div>
+              <div className="section-eyebrow">Browse by field</div>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+                Find jobs by type
+              </h2>
+            </div>
+            <Link href="/job-types" className="view-all">
+              All types
+              <span className="material-symbols-rounded">arrow_forward</span>
+            </Link>
+          </div>
 
-      {/* Qualification Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-black text-charcoal uppercase tracking-tight">Jobs by Qualification</h3>
-          <Link
-            className="text-primary text-sm font-black flex items-center gap-1 hover:underline"
-            href="/qualifications"
-          >
-            VIEW ALL <span className="material-symbols-outlined text-xs">arrow_forward</span>
+          <div className="tile-grid">
+            {loadingHomeJobTypes ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="skeleton h-20 rounded-2xl" />
+              ))
+            ) : homeJobTypes.length === 0 ? (
+              <div className="col-span-full text-center text-text-muted py-6">No data.</div>
+            ) : (
+              homeJobTypes.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleJobType(type)}
+                  type="button"
+                  className="tile"
+                >
+                  <div className="tile-icon">
+                    <span className="material-symbols-rounded">{getJobTypeIcon(type)}</span>
+                  </div>
+                  <div className="tile-body">
+                    <div className="tile-title">{type}</div>
+                    <div className="tile-count">Browse jobs</div>
+                  </div>
+                  <div className="tile-arrow">
+                    <span className="material-symbols-rounded">arrow_forward</span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <AdSenseDisplay variant="wide" className="py-6" />
+
+      {/* ===== QUALIFICATIONS ===== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+          <div>
+            <div className="section-eyebrow">Browse by qualification</div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+              Jobs that fit what you&apos;ve earned
+            </h2>
+          </div>
+          <Link href="/qualifications" className="view-all">
+            All qualifications
+            <span className="material-symbols-rounded">arrow_forward</span>
           </Link>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-3 sm:gap-x-6 pt-2 justify-items-center">
+
+        <div className="tile-grid">
           {loadingHomeQuals ? (
-            <div className="w-full text-center text-sm font-bold underline">Loading...</div>
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton h-20 rounded-2xl" />
+            ))
           ) : homeQualifications.length === 0 ? (
-            <div className="w-full text-center text-sm font-bold italic">No data.</div>
+            <div className="col-span-full text-center text-text-muted py-6">No data.</div>
           ) : (
             homeQualifications.map((qual) => (
               <button
                 key={qual}
                 type="button"
                 onClick={() => handleQualification(qual)}
-                className="flex flex-col items-center justify-center w-full max-w-36 h-28 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)] cursor-pointer"
+                className="tile qual-tile"
               >
-                <span className="material-symbols-outlined text-2xl sm:text-3xl mb-1 sm:mb-2 text-primary">school</span>
-                <span className={pillLabelClass(qual)}>
-                  {qual}
-                </span>
+                <div className="tile-icon">
+                  <span className="material-symbols-rounded">{getQualificationIcon(qual)}</span>
+                </div>
+                <div className="tile-body">
+                  <div className="tile-title">{qual}</div>
+                  <div className="tile-count">View jobs</div>
+                </div>
+                <div className="tile-arrow">
+                  <span className="material-symbols-rounded">arrow_forward</span>
+                </div>
               </button>
             ))
           )}
         </div>
       </section>
 
-      <AdSenseDisplay variant="wide" className="py-2" />
+      <AdSenseDisplay variant="wide" className="py-6" />
 
-      {/* All Jobs Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl md:text-2xl font-black text-charcoal uppercase tracking-tight">
-            All Job Openings
-          </h3>
-          <Link
-            href="/all-jobs"
-            className="text-primary text-sm font-black flex items-center gap-1 hover:underline"
-          >
-            VIEW ALL{" "}
-            <span className="material-symbols-outlined text-xs">
-              arrow_forward
-            </span>
+      {/* ===== ALL JOBS ===== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+          <div>
+            <div className="section-eyebrow">Open right now</div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+              All job openings
+            </h2>
+          </div>
+          <Link href="/all-jobs" className="view-all">
+            View all
+            <span className="material-symbols-rounded">arrow_forward</span>
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <div className="job-grid">
           {loadingAll ? (
-            <div className="col-span-full text-sm font-bold underline text-center">
-              Loading jobs...
-            </div>
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="card-base p-5 space-y-3">
+                <div className="skeleton h-8 w-8 rounded-lg" />
+                <div className="skeleton h-4 w-3/4 rounded" />
+                <div className="skeleton h-3 w-1/2 rounded" />
+                <div className="skeleton h-3 w-2/3 rounded" />
+              </div>
+            ))
           ) : allJobs.length === 0 ? (
-            <div className="col-span-full text-sm font-bold italic text-center">
+            <div className="col-span-full text-center text-text-muted py-10 card-base">
               No jobs found.
             </div>
           ) : (
@@ -298,6 +371,59 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== WHY US ===== */}
+      <section className="bg-surface border-y border-hairline">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+          <div className="max-w-2xl mb-8 sm:mb-10">
+            <div className="section-eyebrow">Why 24jobsalerts</div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink mb-3">
+              Built for serious job seekers.
+            </h2>
+            <p className="text-base text-text-body leading-relaxed">
+              Clean, accurate, daily-updated job alerts with direct links to
+              the official source.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {[
+              {
+                icon: "bolt",
+                title: "Daily updates",
+                desc: "New jobs are posted every single day so you never miss an opportunity.",
+              },
+              {
+                icon: "verified",
+                title: "Verified listings",
+                desc: "Every job links to the official source so you can verify before applying.",
+              },
+              {
+                icon: "filter_alt",
+                title: "Clean filters",
+                desc: "Filter by sector, qualification, or job type — no spammy popups.",
+              },
+              {
+                icon: "bookmark",
+                title: "Save & revisit",
+                desc: "Bookmark jobs in your browser and come back to them anytime.",
+              },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="why-card">
+                <div className="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center mb-4">
+                  <span
+                    className="material-symbols-rounded text-primary"
+                    style={{ fontSize: "20px", fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {icon}
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-ink mb-1.5">{title}</h3>
+                <p className="text-sm text-text-body leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import JobCard from "../components/JobCard";
+import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
+import { getQualificationIcon } from "@/lib/qualificationIcons";
 
 function QualificationsContent() {
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
@@ -51,6 +52,7 @@ function QualificationsContent() {
     const encoded = encodeURIComponent(JSON.stringify(ids));
     document.cookie = `${cookieKey}=${encoded}; path=/; max-age=${60 * 60 * 24 * 30}`;
     setSavedIds(ids);
+    notifySavedJobsCookieChanged();
   };
 
   useEffect(() => {
@@ -87,7 +89,7 @@ function QualificationsContent() {
       params.set("page", String(page));
       params.set("page_size", String(pageSize));
       params.set("qualification", qual);
-      
+
       const res = await fetch(`${API_BASE}/api/jobs?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
@@ -116,64 +118,105 @@ function QualificationsContent() {
   }, [activeQualification, currentPage]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <section className="mb-12">
-          <div className="mb-8">
-            <h1 className="text-3xl font-900 tracking-tighter text-charcoal mb-2 uppercase italic">
-              Jobs by Qualification
+    <div className="bg-canvas">
+      {/* Hero band */}
+      <section className="hero-band-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-20">
+          <div className="max-w-3xl">
+            <div className="section-eyebrow" style={{ color: "var(--color-primary)" }}>
+              Filter by education
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-on-dark mb-3">
+              Jobs by qualification
             </h1>
-            <p className="text-text-body max-w-2xl text-base font-bold">
-              Select your education level to find tailored career opportunities.
+            <p className="text-sm sm:text-base md:text-lg text-on-dark-muted">
+              Select your education level to find roles tailored to your
+              qualification — from 10th pass to graduate, post-grad, and beyond.
             </p>
           </div>
-          
-          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-2">
-            {loadingQuals ? (
-              <div className="text-sm font-bold underline">Loading...</div>
-            ) : qualifications.length === 0 ? (
-              <div className="text-sm font-bold italic">No data.</div>
-            ) : (
-              qualifications.map((qual) => {
+        </div>
+      </section>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Qualifications catalog */}
+        <div className="mb-10 sm:mb-12">
+          <h2 className="text-xs font-semibold tracking-[0.10em] text-text-subtle uppercase mb-3 sm:mb-4">
+            All qualifications
+          </h2>
+
+          {loadingQuals ? (
+            <div className="tile-grid">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="skeleton h-20 rounded-2xl" />
+              ))}
+            </div>
+          ) : qualifications.length === 0 ? (
+            <div className="text-center text-text-muted py-10">
+              No qualifications available.
+            </div>
+          ) : (
+            <div className="tile-grid">
+              {qualifications.map((qual) => {
                 const isActive = activeQualification === qual;
                 return (
-                  <button 
-                    key={qual} 
+                  <button
+                    key={qual}
+                    type="button"
+                    aria-pressed={isActive}
                     onClick={() => setActiveQualification(qual)}
-                    type="button" 
-                    className={`flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 sm:w-36 sm:h-36 rounded-2xl border-2 transition-all hover:-translate-y-1 ${isActive ? 'bg-primary text-white border-charcoal shadow-[6px_6px_0px_rgba(26,23,22,1)]' : 'text-charcoal bg-white border-charcoal hover:shadow-[4px_4px_0px_rgba(26,23,22,1)]'}`}
+                    className="tile qual-tile"
                   >
-                    <span className={`material-symbols-outlined text-3xl mb-2 ${isActive ? 'text-white' : 'text-primary'}`}>school</span>
-                    <span className="text-[11px] sm:text-sm font-black uppercase italic tracking-tighter text-center">
-                      {qual}
-                    </span>
+                    <div className="tile-icon">
+                      <span className="material-symbols-rounded">{getQualificationIcon(qual)}</span>
+                    </div>
+                    <div className="tile-body">
+                      <div className="tile-title">{qual}</div>
+                      <div className="tile-count">View jobs</div>
+                    </div>
+                    <div className="tile-arrow">
+                      <span className="material-symbols-rounded">arrow_forward</span>
+                    </div>
                   </button>
-                )
-              })
-            )}
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-        <section className="space-y-6">
-          <div className="text-center mb-2" ref={headingRef}>
-            <h3 className="text-2xl md:text-3xl font-900 uppercase italic tracking-tight text-charcoal">
-              {activeQualification || "All Qualifications"}
-            </h3>
-          </div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-black text-charcoal uppercase italic tracking-wider">
-              RESULTS: {totalItems || 0} JOBS
-            </p>
+        {/* Active qualification jobs */}
+        <section>
+          <div ref={headingRef} className="flex flex-wrap items-end justify-between gap-3 mb-5 sm:mb-6">
+            <div className="min-w-0">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-[-0.015em] text-ink break-words">
+                {activeQualification || "All qualifications"}
+              </h3>
+              <p className="text-xs sm:text-sm text-text-muted mt-1">
+                {totalItems.toLocaleString()} {totalItems === 1 ? "job" : "jobs"} matching this qualification
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="job-grid">
             {loadingJobs && jobs.length === 0 ? (
-              <div className="col-span-full p-20 text-center font-black italic border-2 border-charcoal border-dashed rounded-2xl">
-                SEARCHING...
-              </div>
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-base p-5 space-y-3">
+                  <div className="skeleton h-11 w-11 rounded-lg" />
+                  <div className="skeleton h-4 w-3/4 rounded" />
+                  <div className="skeleton h-3 w-1/2 rounded" />
+                  <div className="skeleton h-3 w-2/3 rounded" />
+                </div>
+              ))
             ) : !loadingJobs && jobs.length === 0 ? (
-              <div className="col-span-full p-20 text-center font-black italic border-2 border-charcoal border-dashed rounded-2xl uppercase">
-                NO JOBS FOUND
+              <div className="col-span-full card-base text-center py-16 text-text-muted">
+                <div className="w-12 h-12 rounded-full bg-surface mx-auto mb-3 flex items-center justify-center">
+                  <span className="material-symbols-rounded text-text-muted" style={{ fontSize: "22px" }}>
+                    search_off
+                  </span>
+                </div>
+                <p className="font-medium text-ink mb-1">No jobs found</p>
+                <p className="text-sm">
+                  No openings for {activeQualification} right now.
+                </p>
               </div>
             ) : (
               jobs.map((job, idx) => (
@@ -188,35 +231,43 @@ function QualificationsContent() {
             )}
           </div>
 
-          <div className="mt-12 flex justify-center items-center gap-4">
-            <button
-              onClick={() => {
-                if (currentPage <= 1) return;
-                const next = currentPage - 1;
-                setCurrentPage(next);
-                fetchJobs(activeQualification, next);
-              }}
-              disabled={currentPage <= 1}
-              className="p-2 rounded-lg bg-white border-2 border-charcoal text-charcoal disabled:opacity-30 disabled:cursor-not-allowed hover:bg-sand-light transition-all"
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            <span className="px-6 py-2 bg-white border-2 border-charcoal rounded-lg text-sm font-black text-charcoal">
-              PAGE {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => {
-                if (currentPage >= totalPages) return;
-                const next = currentPage + 1;
-                setCurrentPage(next);
-                fetchJobs(activeQualification, next);
-              }}
-              disabled={currentPage >= totalPages}
-              className="p-2 rounded-lg bg-white border-2 border-charcoal text-charcoal disabled:opacity-30 disabled:cursor-not-allowed hover:bg-sand-light transition-all"
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="pagination-row mt-10 sm:mt-12 flex justify-center items-center gap-2 sm:gap-3 flex-wrap">
+              <button
+                onClick={() => {
+                  if (currentPage <= 1) return;
+                  const next = currentPage - 1;
+                  setCurrentPage(next);
+                  fetchJobs(activeQualification, next);
+                }}
+                disabled={currentPage <= 1}
+                className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
+                aria-label="Previous page"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  chevron_left
+                </span>
+              </button>
+              <span className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium text-text-body bg-surface border border-hairline whitespace-nowrap">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => {
+                  if (currentPage >= totalPages) return;
+                  const next = currentPage + 1;
+                  setCurrentPage(next);
+                  fetchJobs(activeQualification, next);
+                }}
+                disabled={currentPage >= totalPages}
+                className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
+                aria-label="Next page"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  chevron_right
+                </span>
+              </button>
+            </div>
+          )}
         </section>
       </main>
     </div>
@@ -227,8 +278,8 @@ export default function Qualifications() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center font-black uppercase">
-          Loading...
+        <div className="min-h-[60vh] flex items-center justify-center text-text-muted">
+          Loading…
         </div>
       }
     >
