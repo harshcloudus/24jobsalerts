@@ -9,8 +9,8 @@ declare global {
 }
 
 const AD_CLIENT =
-  process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-1236097872832305";
-const AD_SLOT = process.env.NEXT_PUBLIC_ADSENSE_SLOT || "3547177238";
+  process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-4476723703068552";
+const AD_SLOT = process.env.NEXT_PUBLIC_ADSENSE_SLOT || "6350182318";
 
 type Variant = "wide" | "narrow" | "inline";
 
