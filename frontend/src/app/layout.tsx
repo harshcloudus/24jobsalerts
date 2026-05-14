@@ -99,7 +99,7 @@ export default function RootLayout({
   const siteLd = buildWebSiteJsonLd();
   return (
     <html lang="en">
-      <head>
+      <body className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
@@ -125,8 +125,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd) }}
         />
-      </head>
-      <body className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-W5LTLXZ5"
@@ -148,3 +146,4 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     </html>
   );
 }
+

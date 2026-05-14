@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -19,8 +19,6 @@ type Props = {
   className?: string;
   wrapperClassName?: string;
   minHeightClassName?: string;
-  /** Optional: hide if still empty after this many ms (keeps visible while loading). */
-  hideIfEmptyAfterMs?: number;
   labelText?: string;
 };
 
@@ -35,12 +33,10 @@ export default function AdSenseDisplay({
   className = "",
   wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
-  hideIfEmptyAfterMs = 8000,
   labelText = "Advertisements",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
-  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (pushed.current || !insRef.current) return;
@@ -67,50 +63,11 @@ export default function AdSenseDisplay({
       if (pushInterval) window.clearInterval(pushInterval);
     }, 12000);
 
-    const statusInterval = window.setInterval(() => {
-      const el = insRef.current;
-      if (!el) return;
-      const status = el.getAttribute("data-ad-status");
-      if (status === "filled") {
-        window.clearInterval(statusInterval);
-        return;
-      }
-      if (status === "unfilled") {
-        setHidden(true);
-        window.clearInterval(statusInterval);
-      }
-    }, 500);
-
-    const hasIframe = () => {
-      const el = insRef.current as unknown as HTMLElement | null;
-      if (!el) return false;
-      return Boolean(el.querySelector("iframe"));
-    };
-
-    const emptyTimeout =
-      hideIfEmptyAfterMs && hideIfEmptyAfterMs > 0
-        ? window.setTimeout(() => {
-            const el = insRef.current;
-            const status = el?.getAttribute("data-ad-status");
-            if (status === "filled") return;
-            if (status === "unfilled") {
-              setHidden(true);
-              return;
-            }
-            // If AdSense never sets status but also never renders an iframe, hide the empty box.
-            if (!hasIframe()) setHidden(true);
-          }, hideIfEmptyAfterMs)
-        : undefined;
-
     return () => {
       if (pushInterval) window.clearInterval(pushInterval);
       window.clearTimeout(pushTimeout);
-      window.clearInterval(statusInterval);
-      if (emptyTimeout) window.clearTimeout(emptyTimeout);
     };
   }, []);
-
-  if (hidden) return null;
 
   const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
