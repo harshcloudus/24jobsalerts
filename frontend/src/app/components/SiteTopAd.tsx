@@ -7,7 +7,7 @@ export default function SiteTopAd() {
   return (
     <AdSenseDisplay
       variant="wide"
-      wrapperClassName="bg-white border-b-2 border-charcoal py-3"
+      wrapperClassName="bg-canvas border-b border-hairline py-3"
     />
   );
 }

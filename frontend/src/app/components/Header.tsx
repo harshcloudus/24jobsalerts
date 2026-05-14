@@ -3,82 +3,145 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { SAVED_JOBS_COOKIE_CHANGED } from "@/lib/savedJobsBroadcast";
 
 const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
+
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/latest-jobs", label: "Latest Jobs" },
+  { href: "/all-jobs", label: "All Jobs" },
+  { href: "/job-types", label: "Job Types" },
+  { href: "/qualifications", label: "Qualification" },
+];
+
+const SAVED_JOB_IDS_COOKIE = "saved_job_ids";
+
+function readSavedJobIdsCount(): number {
+  if (typeof document === "undefined") return 0;
+  const match = document.cookie.split("; ").find((row) => row.startsWith(`${SAVED_JOB_IDS_COOKIE}=`));
+  if (!match) return 0;
+  try {
+    const val = decodeURIComponent(match.split("=")[1]);
+    const parsed = JSON.parse(val);
+    if (!Array.isArray(parsed)) return 0;
+    return parsed.map((v) => Number(v)).filter((n) => !Number.isNaN(n)).length;
+  } catch {
+    return 0;
+  }
+}
 
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
+
   const closeMenu = () => setIsOpen(false);
 
-  const linkClass = (href: string) => {
-    const base = "text-sm font-bold transition-colors";
-    const isActive =
-      pathname === href || (href !== "/" && pathname.startsWith(href));
-    const color = isActive ? "text-primary" : "text-charcoal hover:text-primary";
-    const underline = isActive ? "border-b-2 border-primary pb-0.5" : "";
-    return `${base} ${color} ${underline}`;
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setSavedCount(readSavedJobIdsCount());
+    sync();
+    const onFocus = () => sync();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener(SAVED_JOBS_COOKIE_CHANGED, sync);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener(SAVED_JOBS_COOKIE_CHANGED, sync);
+    };
+  }, [pathname]);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <nav className="sticky top-0 z-50 nav-solid">
+    <nav
+      className="sticky top-0 z-50 nav-solid transition-shadow duration-300"
+      style={{ boxShadow: scrolled ? "0 1px 12px rgba(0,30,43,0.06)" : undefined }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo and desktop nav */}
-          <div className="flex items-center gap-4 sm:gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src={`${BASE_PATH}/24jobsalerts_logo.png`}
-                alt="24jobsalerts"
-                width={140}
-                height={36}
-                priority
-                className="h-9 w-auto"
-              />
-            </Link>
-            {/* Desktop links */}
-            <div className="hidden md:flex items-center gap-6">
-              <Link className={linkClass("/")} href="/">
-                Home
-              </Link>
-              <Link className={linkClass("/latest-jobs")} href="/latest-jobs">
-                Latest Jobs
-              </Link>
-              <Link className={linkClass("/all-jobs")} href="/all-jobs">
-                All Jobs
-              </Link>
+        <div className="flex items-center h-16 min-w-0 gap-2 sm:gap-3">
+          {/* Logo + desktop nav — links follow the logo closely */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 shrink-0"
+            onClick={closeMenu}
+          >
+            <Image
+              src={`${BASE_PATH}/24jobsalerts_logo.png`}
+              alt="24jobsalerts"
+              width={140}
+              height={36}
+              priority
+              className="h-8 w-auto"
+            />
+          </Link>
+
+          <div className="hidden md:flex items-center gap-0 lg:gap-1 pl-2 lg:pl-4 min-w-0">
+            {NAV_LINKS.map(({ href, label }) => (
               <Link
-                className={linkClass("/qualifications")}
-                href="/qualifications"
+                key={href}
+                href={href}
+                className={`nav-link-pill ${isActive(href) ? "active" : ""}`}
               >
-                Qualification
+                {label}
               </Link>
-              <Link className={linkClass("/job-types")} href="/job-types">
-                Job Types
-              </Link>
-            </div>
+            ))}
           </div>
 
-          {/* Desktop bookmarks + mobile toggle */}
-          <div className="flex items-center gap-3">
+          {/* Right side — bookmark circle + CTA (no search) */}
+          <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0 ml-auto">
             <Link
               href="/bookmarks"
-              className="hidden sm:flex bg-white text-charcoal border-2 border-charcoal px-5 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all items-center gap-1"
+              className={`header-icon-btn${isActive("/bookmarks") ? " border-primary/40" : ""}`}
+              aria-label={
+                savedCount > 0
+                  ? `Saved jobs, ${savedCount} saved`
+                  : "Saved jobs"
+              }
             >
-              <span className="material-symbols-outlined text-base">
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "22px", fontVariationSettings: "'FILL' 0" }}
+              >
                 bookmark
               </span>
-              Bookmarks
+              {savedCount > 0 ? (
+                <span className="header-icon-btn-badge" aria-hidden="true">
+                  {savedCount > 99 ? "99+" : savedCount}
+                </span>
+              ) : null}
             </Link>
+
+            <Link href="/latest-jobs" className="hidden sm:inline-flex btn-primary">
+              Browse jobs
+              <span className="material-symbols-rounded" style={{ fontSize: "16px" }}>
+                arrow_forward
+              </span>
+            </Link>
+
             {/* Mobile hamburger */}
             <button
               type="button"
-              className="md:hidden flex items-center justify-center w-9 h-9 border-2 border-charcoal rounded-lg bg-white text-charcoal"
-              onClick={() => setIsOpen((open) => !open)}
+              className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-hairline-strong bg-canvas text-ink hover:bg-surface transition-colors"
+              onClick={() => setIsOpen((o) => !o)}
               aria-label="Toggle navigation"
+              aria-expanded={isOpen}
             >
-              <span className="material-symbols-outlined text-lg">
+              <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
                 {isOpen ? "close" : "menu"}
               </span>
             </button>
@@ -86,55 +149,64 @@ export default function Header() {
         </div>
 
         {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden pb-3 border-t border-charcoal/10">
-            <div className="flex flex-col gap-2 pt-3">
-              <Link className={linkClass("/")} href="/" onClick={closeMenu}>
-                Home
-              </Link>
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? "max-h-[420px] opacity-100 pb-4" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="pt-2 border-t border-hairline flex flex-col gap-1">
+            {NAV_LINKS.map(({ href, label }) => (
               <Link
-                className={linkClass("/latest-jobs")}
-                href="/latest-jobs"
+                key={href}
+                href={href}
                 onClick={closeMenu}
+                className={`flex items-center justify-between px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+                  isActive(href)
+                    ? "bg-primary-light text-primary"
+                    : "text-text-body hover:bg-surface hover:text-ink"
+                }`}
               >
-                Latest Jobs
-              </Link>
-              <Link
-                className={linkClass("/all-jobs")}
-                href="/all-jobs"
-                onClick={closeMenu}
-              >
-                All Jobs
-              </Link>
-              <Link
-                className={linkClass("/qualifications")}
-                href="/qualifications"
-                onClick={closeMenu}
-              >
-                Qualification
-              </Link>
-              <Link
-                className={linkClass("/job-types")}
-                href="/job-types"
-                onClick={closeMenu}
-              >
-                Job Types
-              </Link>
-              <Link
-                href="/bookmarks"
-                className="mt-1 bg-white text-charcoal border-2 border-charcoal px-4 py-2 rounded-lg text-sm font-bold hover:bg-sand-light transition-all flex items-center gap-1 w-max"
-                onClick={closeMenu}
-              >
-                <span className="material-symbols-outlined text-base">
-                  bookmark
+                {label}
+                <span
+                  className="material-symbols-rounded opacity-60"
+                  style={{ fontSize: "16px" }}
+                >
+                  chevron_right
                 </span>
-                Bookmarks
               </Link>
-            </div>
+            ))}
+
+            <Link
+              href="/bookmarks"
+              onClick={closeMenu}
+              className={`flex items-center gap-2 px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+                isActive("/bookmarks")
+                  ? "bg-primary-light text-primary"
+                  : "text-text-body hover:bg-surface hover:text-ink"
+              }`}
+            >
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "18px", fontVariationSettings: "'FILL' 1" }}
+              >
+                bookmark
+              </span>
+              Saved Jobs
+            </Link>
+
+            <Link
+              href="/latest-jobs"
+              onClick={closeMenu}
+              className="mt-3 btn-primary justify-center"
+            >
+              Browse jobs
+              <span className="material-symbols-rounded" style={{ fontSize: "16px" }}>
+                arrow_forward
+              </span>
+            </Link>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
 }
-

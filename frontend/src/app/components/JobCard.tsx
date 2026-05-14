@@ -10,6 +10,40 @@ interface JobCardProps {
   showBookmark?: boolean;
 }
 
+function buildJobSlug(rawTitle: string, id: number) {
+  const base = (rawTitle || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `/jobs/${base || "job"}-${id}`;
+}
+
+function getEmployerShortname(title: string): string {
+  const clean = (title || "").trim();
+  const firstWord = clean.split(/[\s\-–]/)[0] || "";
+  // Use all-caps acronym as-is (e.g. "IIFCL", "NVS", "RRB")
+  if (/^[A-Z]{2,5}$/.test(firstWord)) return firstWord.slice(0, 3);
+  // Otherwise take first 2 words' initials
+  const words = clean.split(/\s+/).filter(Boolean);
+  return words.slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "J";
+}
+
+function getRelativeDate(dateStr: string): string {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    const diffDays = Math.floor((Date.now() - date.getTime()) / 86_400_000);
+    if (diffDays < 0) return "";
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+    return dateStr;
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function JobCard({
   job,
   isSaved = false,
@@ -18,30 +52,18 @@ export default function JobCard({
 }: JobCardProps) {
   const router = useRouter();
   const title: string = job.title || "Untitled role";
-  const shortTitle = title.length > 70 ? `${title.slice(0, 67)}...` : title;
-  const rawCategory = job.category as string | null;
-  const badgeText =
-    rawCategory === "structured_job"
-      ? "Job"
-      : rawCategory === "article"
-      ? "Article"
-      : rawCategory || "Job";
-  const jobType = job.job_type || "Not specified";
-  const qualificationText = job.qualification || "Not specified";
-  const salaryText = job.salary || "";
-
-  const buildJobSlug = (rawTitle: string, id: number) => {
-    const base = (rawTitle || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    return `/jobs/${base || "job"}-${id}`;
-  };
+  const shortTitle = title.length > 140 ? `${title.slice(0, 137)}…` : title;
+  const shortname = getEmployerShortname(title);
+  const jobType: string = job.job_type || "";
+  const qualification: string = job.qualification || "";
+  const salary: string = job.salary || "";
+  const lastDate: string = job.last_date || "";
+  const postedDate: string = job.posted_date ? getRelativeDate(job.posted_date) : "";
   const jobHref = buildJobSlug(title, job.id);
 
   return (
     <article
-      className="bg-white border-2 border-charcoal p-5 rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(26,23,22,1)] transition-all flex flex-col justify-between group cursor-pointer"
+      className="job-card"
       role="button"
       tabIndex={0}
       onClick={() => router.push(jobHref)}
@@ -51,67 +73,88 @@ export default function JobCard({
           router.push(jobHref);
         }
       }}
+      style={{ WebkitTapHighlightColor: "transparent" }}
     >
-      <div>
-        <div className="flex justify-between items-start mb-4">
-          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xl border-2 border-charcoal">
-            {shortTitle.charAt(0).toUpperCase()}
-          </div>
-          <span className="text-[10px] font-black text-primary bg-white border-2 border-charcoal px-2 py-1 rounded-full uppercase">
-            {badgeText}
-          </span>
-        </div>
-        <h3 className="text-base md:text-lg font-black text-charcoal group-hover:text-primary transition-colors mb-3 uppercase tracking-tight">
-          {shortTitle}
-        </h3>
-        <div className="space-y-1 text-sm text-text-muted font-bold">
-          <p>
-            <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">
-              JOB TYPE:
-            </span>
-            {jobType}
-          </p>
-          <p>
-            <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">
-              QUALIFICATION:
-            </span>
-            {qualificationText}
-          </p>
-          <p>
-            <span className="uppercase tracking-widest text-[10px] text-charcoal mr-1">
-              SALARY:
-            </span>
-            {salaryText}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between border-t-2 pt-4 border-charcoal/10 mt-4">
-        {showBookmark ? (
+      {/* Header: employer badge + bookmark */}
+      <div className="job-card-header">
+        <div className="job-employer-mark" aria-hidden="true">{shortname}</div>
+        {showBookmark && (
           <button
-            className="text-charcoal hover:text-primary transition-colors flex items-center justify-center"
+            className={`job-bookmark-btn${isSaved ? " saved" : ""}`}
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onToggleSaved && onToggleSaved(job.id);
             }}
-            aria-label={isSaved ? "Remove bookmark" : "Save bookmark"}
+            aria-label={isSaved ? "Remove bookmark" : "Save job"}
           >
-            <span className="material-symbols-outlined">
-              {isSaved ? "bookmark_added" : "bookmark_add"}
+            <span
+              className="material-symbols-rounded"
+              style={{
+                fontSize: "18px",
+                fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0",
+              }}
+            >
+              bookmark
             </span>
           </button>
+        )}
+      </div>
+
+      {/* Title */}
+      <h3 className="job-card-title">{shortTitle}</h3>
+
+      {/* Meta row */}
+      <div className="job-meta-row">
+        {salary ? (
+          <span className="job-meta-item">
+            <span className="material-symbols-rounded">payments</span>
+            <span>{salary}</span>
+          </span>
+        ) : jobType ? (
+          <span className="job-meta-item">
+            <span className="material-symbols-rounded">work</span>
+            <span>{jobType}</span>
+          </span>
+        ) : null}
+        {postedDate ? (
+          <span className="job-meta-item">
+            <span className="material-symbols-rounded">schedule</span>
+            <span>Posted {postedDate}</span>
+          </span>
+        ) : qualification ? (
+          <span className="job-meta-item">
+            <span className="material-symbols-rounded">school</span>
+            <span>{qualification}</span>
+          </span>
+        ) : null}
+      </div>
+
+      {/* Tags — always rendered so all cards align identically */}
+      <div className="job-card-tags">
+        {jobType && <span className="job-tag">{jobType}</span>}
+        {qualification && <span className="job-tag">{qualification}</span>}
+      </div>
+
+      {/* Footer */}
+      <div className="job-card-footer">
+        {lastDate ? (
+          <span className="job-deadline">
+            <span className="material-symbols-rounded">calendar_today</span>
+            Apply by {lastDate}
+          </span>
         ) : (
           <span />
         )}
         <Link
           href={jobHref}
-          className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-black text-sm border-2 border-charcoal transition-all"
+          className="job-card-apply"
           onClick={(e) => e.stopPropagation()}
         >
-          DETAILS
+          Read more
+          <span className="material-symbols-rounded">arrow_forward</span>
         </Link>
       </div>
     </article>
   );
 }
-

@@ -114,11 +114,11 @@ export default function AdSenseDisplay({
 
   const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
-      <div className="mb-2 text-center text-[11px] font-black uppercase tracking-widest text-text-muted/80">
+      <div className="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.10em] text-text-subtle">
         {labelText}
       </div>
       <div
-        className={`${minHeightClassName} w-full border-2 border-charcoal/20 rounded-xl bg-sand-light/50 overflow-hidden`}
+        className={`${minHeightClassName} w-full border border-hairline rounded-xl bg-surface overflow-hidden`}
       >
         <ins
           ref={insRef}
