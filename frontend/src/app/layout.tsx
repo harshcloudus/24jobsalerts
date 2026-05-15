@@ -7,7 +7,6 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SiteTopAd from "./components/SiteTopAd";
 import AdSenseDisplay from "./components/AdSenseDisplay";
-import AdGateModal from "./components/AdGateModal";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -105,10 +104,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
         />
-        {/* Ad Placement API bootstrap — must run before adsbygoogle.js */}
-        <Script id="ad-placement-init" strategy="beforeInteractive">
-          {`window.adBreak=window.adConfig=function(o){(window.__adPlacements=window.__adPlacements||[]).push(o);};`}
-        </Script>
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4476723703068552"
@@ -147,7 +142,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
         <Footer />
         <BackToTopButton />
-        <AdGateModal />
       </body>
     </html>
   );

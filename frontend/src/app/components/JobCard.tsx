@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { adManager } from "@/lib/adManager";
 
 interface JobCardProps {
   job: any;
@@ -52,8 +51,6 @@ export default function JobCard({
   showBookmark = false,
 }: JobCardProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
   const title: string = job.title || "Untitled role";
   const shortTitle = title.length > 140 ? `${title.slice(0, 137)}…` : title;
   const shortname = getEmployerShortname(title);
@@ -64,37 +61,20 @@ export default function JobCard({
   const postedDate: string = job.posted_date ? getRelativeDate(job.posted_date) : "";
   const jobHref = buildJobSlug(title, job.id);
 
-  // All navigation goes through the ad gate. Guards against double-click and
-  // simultaneous triggers from card click + "Read more" button click.
-  const navigateWithAd = useCallback(async () => {
-    if (adManager.isInProgress || loading) return;
-    setLoading(true);
-    try {
-      await adManager.showAdGate();
-      router.push(jobHref);
-    } finally {
-      setLoading(false);
-    }
-  }, [jobHref, router, loading]);
-
   return (
     <article
-      className={`job-card${loading ? " job-card--loading" : ""}`}
+      className="job-card"
       role="button"
       tabIndex={0}
-      onClick={navigateWithAd}
+      onClick={() => router.push(jobHref)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          navigateWithAd();
+          router.push(jobHref);
         }
       }}
       style={{ WebkitTapHighlightColor: "transparent" }}
-      aria-busy={loading}
     >
-      {/* Progress bar shown while ad gate is resolving */}
-      {loading && <div className="job-card-loading-bar" aria-hidden="true" />}
-
       {/* Header: employer badge + bookmark */}
       <div className="job-card-header">
         <div className="job-employer-mark" aria-hidden="true">{shortname}</div>
@@ -166,21 +146,14 @@ export default function JobCard({
         ) : (
           <span />
         )}
-        <button
-          type="button"
+        <Link
+          href={jobHref}
           className="job-card-apply"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigateWithAd();
-          }}
-          disabled={loading}
-          aria-label={`Read more about ${title}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          {loading ? "Loading…" : "Read more"}
-          <span className="material-symbols-rounded">
-            {loading ? "hourglass_top" : "arrow_forward"}
-          </span>
-        </button>
+          Read more
+          <span className="material-symbols-rounded">arrow_forward</span>
+        </Link>
       </div>
     </article>
   );
