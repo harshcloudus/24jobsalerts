@@ -100,7 +100,7 @@ export default function JobCard({
     : "";
   const jobHref = buildJobSlug(title, job.id);
 
-  const handleCardClick = () => {
+  const handleCardClick = (jobHref: string) => {
     navigateWithAdBreak(jobHref, () => router.push(jobHref));
   };
 
@@ -109,11 +109,11 @@ export default function JobCard({
       className="job-card"
       role="button"
       tabIndex={0}
-      onClick={handleCardClick}
+      onClick={() => handleCardClick(jobHref)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          handleCardClick();
+          handleCardClick(jobHref);
         }
       }}
       style={{ WebkitTapHighlightColor: "transparent" }}
