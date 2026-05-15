@@ -1526,3 +1526,156 @@ input:focus-visible {
     padding: 3px 8px;
   }
 }
+
+/* =================================================================
+   Job card — ad gate loading state
+   ================================================================= */
+.job-card--loading {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.job-card-loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    rgba(224, 92, 58, 0.35) 50%,
+    var(--color-primary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+
+/* =================================================================
+   Ad Gate Modal — fullscreen interstitial overlay
+   ================================================================= */
+.adgate-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 18, 32, 0.84);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.adgate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.adgate-container {
+  pointer-events: all;
+  background: var(--color-canvas);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  animation: fadeInUp 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.adgate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.adgate-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.adgate-ad-icon {
+  font-size: 16px;
+  color: var(--color-primary);
+  font-variation-settings: 'FILL' 1;
+}
+
+.adgate-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-hairline-soft);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.adgate-close-btn.adgate-close-ready {
+  cursor: pointer;
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .adgate-close-btn.adgate-close-ready:hover {
+    background: var(--color-ink-mid);
+    border-color: var(--color-ink-mid);
+  }
+}
+
+.adgate-countdown {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: var(--font-display);
+}
+
+.adgate-body {
+  min-height: 260px;
+  background: var(--color-surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adgate-body .adsbygoogle {
+  width: 100%;
+}
+
+.adgate-note {
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  text-align: center;
+  border-top: 1px solid var(--color-hairline);
+  margin: 0;
+  background: var(--color-surface);
+}
+
+@media (max-width: 640px) {
+  .adgate-container {
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+  }
+  .adgate-body {
+    min-height: 200px;
+  }
+}
