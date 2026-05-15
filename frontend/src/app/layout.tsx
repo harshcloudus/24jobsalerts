@@ -103,6 +103,34 @@ export default function RootLayout({
   const siteLd = buildWebSiteJsonLd();
   return (
     <html lang="en">
+      <head>
+        <script
+          async
+          data-ad-client="ca-pub-4476723703068552"
+          data-ad-frequency-hint="30s"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+          crossOrigin="anonymous"
+        />
+        <Script
+          id="adsbygoogle-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(adsbygoogle = window.adsbygoogle || []).push({});`,
+          }}
+        />
+        <Script
+          id="adbreak-config"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `window.adsbygoogle = window.adsbygoogle || [];
+var adBreak = (adConfig = function (o) {
+  adsbygoogle.push(o);
+});
+adConfig({ preloadAdBreaks: "on", sound: "off" });`,
+          }}
+        />
+      </head>
+
       <body
         className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}
       >
@@ -110,12 +138,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
         />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4476723703068552"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+
         <Script id="gtm-script" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

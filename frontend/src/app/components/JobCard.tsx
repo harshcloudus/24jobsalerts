@@ -26,7 +26,12 @@ function getEmployerShortname(title: string): string {
   if (/^[A-Z]{2,5}$/.test(firstWord)) return firstWord.slice(0, 3);
   // Otherwise take first 2 words' initials
   const words = clean.split(/\s+/).filter(Boolean);
-  return words.slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "J";
+  return (
+    words
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() || "")
+      .join("") || "J"
+  );
 }
 
 function getRelativeDate(dateStr: string): string {
@@ -45,6 +50,37 @@ function getRelativeDate(dateStr: string): string {
   }
 }
 
+function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
+  if (typeof window === "undefined") {
+    fallback();
+    return;
+  }
+
+  if (typeof (window as any).adBreak !== "function") {
+    fallback();
+    return;
+  }
+
+  (window as any).adBreak({
+    type: "reward",
+    name: "game_start",
+    beforeReward(showAdFn: (delay: number) => void) {
+      showAdFn(0);
+    },
+    adDismissed() {},
+    adViewed() {},
+    adBreakDone(info: { breakStatus?: string }) {
+      if (info && info.breakStatus === "viewed") {
+        window.location.href = targetUrl;
+      } else if (info && info.breakStatus === "dismissed") {
+        alert("⚠️ Please watch the full ad to play this game.");
+      } else {
+        window.location.href = targetUrl;
+      }
+    },
+  });
+}
+
 export default function JobCard({
   job,
   isSaved = false,
@@ -59,26 +95,34 @@ export default function JobCard({
   const qualification: string = job.qualification || "";
   const salary: string = job.salary || "";
   const lastDate: string = job.last_date || "";
-  const postedDate: string = job.posted_date ? getRelativeDate(job.posted_date) : "";
+  const postedDate: string = job.posted_date
+    ? getRelativeDate(job.posted_date)
+    : "";
   const jobHref = buildJobSlug(title, job.id);
+
+  const handleCardClick = () => {
+    navigateWithAdBreak(jobHref, () => router.push(jobHref));
+  };
 
   return (
     <article
       className="job-card"
       role="button"
       tabIndex={0}
-      onClick={() => router.push(jobHref)}
+      onClick={handleCardClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          router.push(jobHref);
+          handleCardClick();
         }
       }}
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
       {/* Header: employer badge + bookmark */}
       <div className="job-card-header">
-        <div className="job-employer-mark" aria-hidden="true">{shortname}</div>
+        <div className="job-employer-mark" aria-hidden="true">
+          {shortname}
+        </div>
         {showBookmark && (
           <button
             className={`job-bookmark-btn${isSaved ? " saved" : ""}`}
