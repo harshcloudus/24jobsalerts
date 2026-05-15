@@ -23,7 +23,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://24jobsalert.dreamdazzly.com";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://24jobsalert.dreamdazzly.com";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -79,7 +80,9 @@ export const metadata: Metadata = {
     siteName: "24jobsalerts",
     title: "24jobsalerts — Latest Government Jobs & Sarkari Naukri 2026",
     description: "Latest Indian government job notifications updated daily.",
-    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "24jobsalerts" }],
+    images: [
+      { url: "/og-default.png", width: 1200, height: 630, alt: "24jobsalerts" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -99,7 +102,9 @@ export default function RootLayout({
   const siteLd = buildWebSiteJsonLd();
   return (
     <html lang="en">
-      <body className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}>
+      <body
+        className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}
+      >
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
@@ -146,4 +151,3 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     </html>
   );
 }
-
