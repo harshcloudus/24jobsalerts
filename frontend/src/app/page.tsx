@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import JobCard from "./components/JobCard";
 import AdSenseDisplay from "./components/AdSenseDisplay";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
+import type { Job } from "@/lib/seo";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(
   /\/$/,
@@ -19,10 +20,21 @@ export default function Home() {
   const [loadingHomeQuals, setLoadingHomeQuals] = useState(true);
   const [homeJobTypes, setHomeJobTypes] = useState<string[]>([]);
   const [loadingHomeJobTypes, setLoadingHomeJobTypes] = useState(true);
-  const [latestJobs, setLatestJobs] = useState<any[]>([]);
+  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
   const [loadingLatest, setLoadingLatest] = useState(true);
-  const [allJobs, setAllJobs] = useState<any[]>([]);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [loadingAll, setLoadingAll] = useState(true);
+
+  // Inline search state — search results render above the page sections
+  // instead of navigating to /latest-jobs.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Job[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchPage, setSearchPage] = useState(1);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [searchActive, setSearchActive] = useState(false);
+  const searchPageSize = 9;
+  const searchTotalPages = Math.max(1, Math.ceil(searchTotal / searchPageSize));
 
   const getJobTypeIcon = (type: string) => {
     const t = type.toLowerCase();
@@ -124,16 +136,75 @@ export default function Home() {
     fetchAll();
   }, []);
 
+  // Combine the two hero inputs into a single space-separated query so the
+  // backend's multi-term search applies (every term must match somewhere).
+  const buildSearchQuery = (search: string, qualification: string) => {
+    return [search, qualification]
+      .map((s) => (s || "").trim())
+      .filter(Boolean)
+      .join(" ");
+  };
+
+  const fetchSearchResults = async (query: string, page: number) => {
+    if (!query) return;
+    setLoadingSearch(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("page_size", String(searchPageSize));
+      params.set("search", query);
+      const res = await fetch(`${API_BASE}/api/jobs?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to load search results");
+      const data = await res.json();
+      setSearchResults(data.items || []);
+      setSearchTotal(data.total || 0);
+    } catch (err) {
+      console.error(err);
+      setSearchResults([]);
+      setSearchTotal(0);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
   const handleHeroSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const search = (fd.get("search") as string)?.trim();
-    const qualification = (fd.get("qualification") as string)?.trim();
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (qualification) params.set("qualification", qualification);
-    router.push(`/latest-jobs${params.toString() ? `?${params}` : ""}`);
+    const search = (fd.get("search") as string) || "";
+    const qualification = (fd.get("qualification") as string) || "";
+    const query = buildSearchQuery(search, qualification);
+    if (!query) {
+      setSearchActive(false);
+      setSearchQuery("");
+      setSearchResults([]);
+      setSearchTotal(0);
+      return;
+    }
+    setSearchQuery(query);
+    setSearchActive(true);
+    setSearchPage(1);
+    if (typeof window !== "undefined") {
+      requestAnimationFrame(() => {
+        const el = document.getElementById("home-search-results");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
   };
+
+  const clearHomeSearch = () => {
+    setSearchActive(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchTotal(0);
+    setSearchPage(1);
+  };
+
+  // Run the fetch whenever the active query or page changes. State batching
+  // guarantees a single fetch even when both are updated on submit.
+  useEffect(() => {
+    if (!searchActive || !searchQuery) return;
+    fetchSearchResults(searchQuery, searchPage);
+  }, [searchActive, searchQuery, searchPage]);
 
   return (
     <>
@@ -202,6 +273,94 @@ export default function Home() {
       </section>
 
       <AdSenseDisplay variant="wide" className="py-6" />
+
+      {/* ===== INLINE SEARCH RESULTS ===== */}
+      {searchActive && (
+        <section
+          id="home-search-results"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+            <div>
+              <div className="section-eyebrow">Search results</div>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+                {loadingSearch
+                  ? `Searching for "${searchQuery}"…`
+                  : `${searchTotal.toLocaleString()} match${searchTotal === 1 ? "" : "es"} for "${searchQuery}"`}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={clearHomeSearch}
+              className="view-all"
+              aria-label="Clear search"
+            >
+              <span className="material-symbols-rounded">close</span>
+              Clear search
+            </button>
+          </div>
+
+          <div className="job-grid">
+            {loadingSearch ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-base p-5 space-y-3">
+                  <div className="skeleton h-8 w-8 rounded-lg" />
+                  <div className="skeleton h-4 w-3/4 rounded" />
+                  <div className="skeleton h-3 w-1/2 rounded" />
+                  <div className="skeleton h-3 w-2/3 rounded" />
+                </div>
+              ))
+            ) : searchResults.length === 0 ? (
+              <div className="col-span-full card-base text-center py-16 text-text-muted">
+                <div className="w-12 h-12 rounded-full bg-surface mx-auto mb-3 flex items-center justify-center">
+                  <span
+                    className="material-symbols-rounded text-text-muted"
+                    style={{ fontSize: "22px" }}
+                  >
+                    search_off
+                  </span>
+                </div>
+                <p className="font-medium text-ink mb-1">
+                  No matching jobs found
+                </p>
+                <p className="text-sm">
+                  Try a different keyword or fewer words.
+                </p>
+              </div>
+            ) : (
+              searchResults.map((job, idx) => <JobCard key={idx} job={job} />)
+            )}
+          </div>
+
+          {searchTotalPages > 1 && (
+            <div className="pagination-row mt-10 sm:mt-12 flex justify-center items-center gap-2 sm:gap-3 flex-wrap">
+              <button
+                onClick={() => setSearchPage((p) => Math.max(1, p - 1))}
+                disabled={searchPage <= 1}
+                className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
+                aria-label="Previous page"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  chevron_left
+                </span>
+              </button>
+              <span className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium text-text-body bg-surface border border-hairline whitespace-nowrap">
+                Page {searchPage} of {searchTotalPages}
+              </span>
+              <button
+                onClick={() => setSearchPage((p) => Math.min(searchTotalPages, p + 1))}
+                disabled={searchPage >= searchTotalPages}
+                className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
+                aria-label="Next page"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  chevron_right
+                </span>
+              </button>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ===== LATEST JOBS ===== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">

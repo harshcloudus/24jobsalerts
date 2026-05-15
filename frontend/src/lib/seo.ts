@@ -13,8 +13,31 @@ export interface JobLike {
   url?: string | null;
 }
 
+export type JobTableCell =
+  | string
+  | number
+  | null
+  | { text?: string | null; href?: string | null };
+
+export interface JobTable {
+  heading?: string | null;
+  name?: string | null;
+  columns: string[];
+  rows: JobTableCell[][];
+}
+
+export interface Job extends JobLike {
+  tables_json?: JobTable[] | null;
+  requirement_text?: string | null;
+  eligibility_text?: string | null;
+  official_site_text?: string | null;
+  application_fee?: string | null;
+  selection_process?: string | null;
+  apply_text?: string | null;
+}
+
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://24jobsalert.dreamdazzly.com").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://mediresponse.org/24jobsalert").replace(/\/$/, "");
 }
 
 export function canonicalForJob(slug: string): string {

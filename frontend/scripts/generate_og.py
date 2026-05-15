@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.abspath(os.path.join(HERE, "..", "public"))
-LOGO_PATH = os.path.join(PUBLIC, "24jobsalerts_logo.png")
+LOGO_PATH = os.path.join(PUBLIC, "footer-logo.png")
 OUT_PATH = os.path.join(PUBLIC, "og-default.png")
 
 BG = "#001e2b"
@@ -48,32 +48,32 @@ def main() -> None:
     if os.path.exists(LOGO_PATH):
         try:
             logo = Image.open(LOGO_PATH).convert("RGBA")
-            logo.thumbnail((480, 200))
-            img.paste(logo, ((W - logo.width) // 2, 140), logo)
+            logo.thumbnail((720, 260))
+            img.paste(logo, ((W - logo.width) // 2, 110), logo)
             logo_drawn = True
         except Exception:
             pass
 
-    title_font = load_font(64)
-    sub_font = load_font(32)
+    title_font = load_font(72)
+    headline_font = load_font(48)
+    sub_font_small = load_font(26)
 
     if not logo_drawn:
         # Big text fallback
         title = "24jobsalerts"
         bbox = draw.textbbox((0, 0), title, font=title_font)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        draw.text(((W - tw) // 2, 180), title, fill=FG, font=title_font)
+        tw = bbox[2] - bbox[0]
+        draw.text(((W - tw) // 2, 180), title, fill=ACCENT, font=title_font)
 
     headline = "Latest Government Jobs 2026"
-    bbox = draw.textbbox((0, 0), headline, font=sub_font)
+    bbox = draw.textbbox((0, 0), headline, font=headline_font)
     hw = bbox[2] - bbox[0]
-    draw.text(((W - hw) // 2, 400), headline, fill=FG, font=sub_font)
+    draw.text(((W - hw) // 2, 410), headline, fill=FG, font=headline_font)
 
     sub = "Sarkari Naukri  •  Free Job Alerts  •  Apply Direct"
-    sub_font_small = load_font(24)
     bbox = draw.textbbox((0, 0), sub, font=sub_font_small)
     sw = bbox[2] - bbox[0]
-    draw.text(((W - sw) // 2, 470), sub, fill="#94a3b8", font=sub_font_small)
+    draw.text(((W - sw) // 2, 490), sub, fill=ACCENT, font=sub_font_small)
 
     # Accent stripe at bottom
     draw.rectangle((0, H - 10, W, H), fill=ACCENT)

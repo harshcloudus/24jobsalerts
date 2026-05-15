@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AdSenseDisplay from "../../components/AdSenseDisplay";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
 import {
   buildBreadcrumbJsonLd,
   buildJobPostingJsonLd,
+  type Job,
   type JobLike,
+  type JobTable,
+  type JobTableCell,
 } from "@/lib/seo";
 
 export default function JobDetailPage() {
   const { id } = useParams();
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
 
-  const [job, setJob] = useState<any>(null);
+  const [job, setJob] = useState<Job | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,8 +54,8 @@ export default function JobDetailPage() {
         if (!res.ok) throw new Error("Job not found");
         const data = await res.json();
         setJob(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load job");
       } finally {
         setLoading(false);
       }
@@ -139,15 +142,101 @@ export default function JobDetailPage() {
     );
   }
 
-  const tables = job.tables_json || [];
+  const tables: JobTable[] = job.tables_json || [];
 
-  const renderCellContent = (cell: string, fallbackUrl?: string | null) => {
-    if (typeof cell !== "string" || !cell.trim()) return cell;
-    const trimmed = cell.trim();
+  const linkClass = "text-primary hover:underline font-medium break-words";
 
-    const linkClass = "text-primary hover:underline font-medium";
+  const normalizeText = (s: string) =>
+    s.replace(/ /g, " ").replace(/\s+/g, " ").trim();
 
-    if (/^https?:\/\/\S+$/i.test(trimmed)) {
+  const isUrl = (s: string) => /^https?:\/\/\S+$/i.test(s);
+  const isDomain = (s: string) =>
+    /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9-]+)+(?:\/[\w\-./?&=#%]*)?$/i.test(
+      s
+    );
+  const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+  const ctaPattern =
+    /^(apply now|click here|apply online|apply offline|register now|register here|apply here|download(?:\s+(?:notification|pdf|form|the notification|notification pdf))?|notification|view notification|official notification|application form|download form|view details|check here|get details|here|view here|read more|details here|click to apply|apply|link|view link)$/i;
+
+  const toAbsoluteUrl = (raw: string) => {
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^mailto:|^tel:/i.test(raw)) return raw;
+    return `https://${raw.replace(/^www\./i, "")}`;
+  };
+
+  const truncateForDisplay = (url: string, max = 50) =>
+    url.length <= max ? url : `${url.slice(0, max - 1)}…`;
+
+  const linkifyText = (text?: string | null): React.ReactNode => {
+    if (!text) return text;
+    const urlRegex = /(https?:\/\/[^\s<>"')]+)/gi;
+    const trailingPunct = /[.,;:!?]+$/;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = urlRegex.exec(text)) !== null) {
+      let url = match[0];
+      let tail = "";
+      const punctMatch = url.match(trailingPunct);
+      if (punctMatch) {
+        tail = punctMatch[0];
+        url = url.slice(0, url.length - tail.length);
+      }
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      parts.push(
+        <a
+          key={`${match.index}-${url}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+          title={url}
+        >
+          {truncateForDisplay(url)}
+        </a>
+      );
+      if (tail) parts.push(tail);
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    return parts.length > 0 ? <>{parts}</> : text;
+  };
+
+  const renderCellContent = (
+    cell: unknown,
+    fallbackUrl?: string | null,
+    forceLink: boolean = false
+  ): React.ReactNode => {
+    // Forward-compatible: support { text, href } objects from updated scrapers.
+    if (cell && typeof cell === "object" && "text" in (cell as Record<string, unknown>)) {
+      const obj = cell as { text?: string; href?: string | null };
+      const text = normalizeText(String(obj.text ?? ""));
+      const href = obj.href && typeof obj.href === "string" ? obj.href.trim() : "";
+      if (text && href) {
+        return (
+          <a
+            href={toAbsoluteUrl(href)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {text}
+          </a>
+        );
+      }
+      return renderCellContent(text, fallbackUrl, forceLink);
+    }
+
+    if (typeof cell !== "string") return (cell as React.ReactNode) ?? "";
+    const trimmed = normalizeText(cell);
+    if (!trimmed) return cell;
+
+    if (isUrl(trimmed)) {
       return (
         <a href={trimmed} target="_blank" rel="noopener noreferrer" className={linkClass}>
           {trimmed}
@@ -155,21 +244,35 @@ export default function JobDetailPage() {
       );
     }
 
-    if (/^(?:www\.)?[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/.test(trimmed) && /\.[a-zA-Z]{2,}$/.test(trimmed)) {
-      const url = trimmed.startsWith("http")
-        ? trimmed
-        : `https://${trimmed.replace(/^www\./i, "")}`;
+    if (isDomain(trimmed)) {
       return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+        <a
+          href={toAbsoluteUrl(trimmed)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+        >
           {trimmed}
         </a>
       );
     }
 
-    const ctaPattern = /^(apply now|click here|apply online|register now|register here|apply here|download(?: notification| pdf| form)?|notification|view notification|official notification|application form|download form|view details|check here|get details)$/i;
-    if (fallbackUrl && ctaPattern.test(trimmed)) {
+    if (isEmail(trimmed)) {
       return (
-        <a href={fallbackUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+        <a href={`mailto:${trimmed}`} className={linkClass}>
+          {trimmed}
+        </a>
+      );
+    }
+
+    if (fallbackUrl && (ctaPattern.test(trimmed) || forceLink)) {
+      return (
+        <a
+          href={fallbackUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+        >
           {trimmed}
         </a>
       );
@@ -177,6 +280,9 @@ export default function JobDetailPage() {
 
     return cell;
   };
+
+  const isImportantLinksTable = (heading?: string | null) =>
+    !!heading && /important\s*links?/i.test(heading);
 
   const categoryLabel =
     job.category === "structured_job"
@@ -306,12 +412,23 @@ export default function JobDetailPage() {
                   </span>
                   Job description
                 </h3>
-                <p className="text-text-body leading-relaxed">{job.intro_text}</p>
+                <p className="text-text-body leading-relaxed">{linkifyText(job.intro_text)}</p>
               </section>
             )}
 
             {/* Dynamic tables */}
-            {tables.map((table: any, tIdx: number) => (
+            {tables.map((table: JobTable, tIdx: number) => {
+              const importantLinks = isImportantLinksTable(table.heading);
+              // For "Important Links" tables, the scraper stores the first
+              // link-pair row inside `columns` (the table on the source page
+              // has no real headers — just pairs of label/link cells). Treat
+              // the columns as an additional data row so its cells run through
+              // renderCellContent and become clickable like the rest.
+              const bodyRows: JobTableCell[][] = importantLinks
+                ? [table.columns as JobTableCell[], ...table.rows]
+                : table.rows;
+              const showHeader = !importantLinks;
+              return (
               <section
                 key={tIdx}
                 className="card-base overflow-hidden"
@@ -331,34 +448,43 @@ export default function JobDetailPage() {
                   )}
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
-                      <thead>
-                        <tr>
-                          {table.columns.map((col: string, cIdx: number) => (
-                            <th
-                              key={cIdx}
-                              className="border-b border-hairline-strong bg-surface px-4 py-3 text-left font-semibold text-ink text-[13px] tracking-tight"
-                            >
-                              {col}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+                      {showHeader && (
+                        <thead>
+                          <tr>
+                            {table.columns.map((col: string, cIdx: number) => (
+                              <th
+                                key={cIdx}
+                                className="border-b border-hairline-strong bg-surface px-4 py-3 text-left font-semibold text-ink text-[13px] tracking-tight"
+                              >
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                      )}
                       <tbody>
-                        {table.rows.map((row: string[], rIdx: number) => (
+                        {bodyRows.map((row: JobTableCell[], rIdx: number) => {
+                          const linkColIdx = row.length - 1;
+                          return (
                           <tr
                             key={rIdx}
                             className="border-b border-hairline-soft last:border-b-0"
                           >
-                            {row.map((cell: string, dIdx: number) => (
+                            {row.map((cell: JobTableCell, dIdx: number) => (
                               <td
                                 key={dIdx}
                                 className="px-4 py-3 text-text-body align-top"
                               >
-                                {renderCellContent(cell, job.official_site)}
+                                {renderCellContent(
+                                  cell,
+                                  job.official_site || job.url,
+                                  importantLinks && dIdx === linkColIdx && row.length > 1
+                                )}
                               </td>
                             ))}
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -376,12 +502,13 @@ export default function JobDetailPage() {
                     table.heading.toLowerCase().includes("how to apply") &&
                     job.official_site_text && (
                       <div className="mt-4 text-sm text-text-body leading-relaxed">
-                        <p>{job.official_site_text}</p>
+                        <p>{linkifyText(job.official_site_text)}</p>
                       </div>
                     )}
                 </div>
               </section>
-            ))}
+              );
+            })}
 
             {(job.selection_process || job.application_fee) && (
               <AdSenseDisplay variant="inline" />
@@ -468,7 +595,7 @@ export default function JobDetailPage() {
 
                   {job.apply_text && (
                     <div className="mt-2 p-4 bg-surface border border-hairline rounded-lg text-xs text-text-body leading-relaxed">
-                      {job.apply_text}
+                      {linkifyText(job.apply_text)}
                     </div>
                   )}
                 </div>
@@ -489,7 +616,7 @@ export default function JobDetailPage() {
                 </div>
                 {job.last_date_text ? (
                   <p className="text-sm text-text-body leading-relaxed">
-                    {job.last_date_text}
+                    {linkifyText(job.last_date_text)}
                   </p>
                 ) : job.last_date ? (
                   <p className="text-base font-semibold text-ink">{job.last_date}</p>

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import JobCard from "../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
+import type { Job } from "@/lib/seo";
 
 function QualificationsContent() {
   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
@@ -13,7 +14,7 @@ function QualificationsContent() {
 
   const [qualifications, setQualifications] = useState<string[]>([]);
   const [activeQualification, setActiveQualification] = useState("");
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingQuals, setLoadingQuals] = useState(true);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,7 +34,7 @@ function QualificationsContent() {
       const val = decodeURIComponent(match.split("=")[1]);
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) {
-        return parsed.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
+        return parsed.map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
       }
       return [];
     } catch {

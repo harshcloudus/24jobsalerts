@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     "Get in touch with 24jobsalerts support. Reach us for feedback, corrections, or help.",
 };
 
-const SUPPORT_EMAIL = "24jobsalert@dreamdazzly.com";
+const SUPPORT_EMAIL = "24jobsalert@mediresponse.org";
 
 export default function ContactUsPage() {
   return (
@@ -20,7 +20,7 @@ export default function ContactUsPage() {
             Contact us
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-on-dark-muted max-w-2xl">
-            For support, feedback, or corrections — email us and we'll get back
+            For support, feedback, or corrections — email us and we&apos;ll get back
             to you as soon as possible.
           </p>
         </div>

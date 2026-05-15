@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import JobCard from "../components/JobCard";
-
-type SavedJob = {
-  id: number;
-  title?: string | null;
-  job_type?: string | null;
-  qualification?: string | null;
-  category?: string | null;
-};
+import type { Job } from "@/lib/seo";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
 const COOKIE_KEY = "saved_job_ids";
@@ -32,7 +25,7 @@ function getSavedIdsFromCookie(): number[] {
 }
 
 export default function BookmarksPage() {
-  const [jobs, setJobs] = useState<SavedJob[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +37,7 @@ export default function BookmarksPage() {
         return;
       }
       try {
-        const fetched: SavedJob[] = [];
+        const fetched: Job[] = [];
         for (const id of ids) {
           const res = await fetch(`${API_BASE}/api/jobs/${id}`);
           if (!res.ok) continue;

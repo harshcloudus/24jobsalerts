@@ -9,9 +9,16 @@ const normalizedBasePath =
     ? "/" + rawBasePath.replace(/^\/+|\/+$/g, "")
     : "";
 
-const nextConfig: NextConfig = normalizedBasePath
-  ? { basePath: normalizedBasePath }
-  : {};
+const nextConfig: NextConfig = {
+  ...(normalizedBasePath ? { basePath: normalizedBasePath } : {}),
+  async rewrites() {
+    return [
+      { source: "/sitemap.xml", destination: "/api/sitemap" },
+      { source: "/page-sitemap.xml", destination: "/api/sitemap/page" },
+      { source: "/post-sitemap.xml", destination: "/api/sitemap/post/1" },
+      { source: "/post-sitemap:n(\\d+).xml", destination: "/api/sitemap/post/:n" },
+    ];
+  },
+};
 
 export default nextConfig;
-

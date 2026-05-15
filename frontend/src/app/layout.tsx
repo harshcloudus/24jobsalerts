@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SiteTopAd from "./components/SiteTopAd";
 import AdSenseDisplay from "./components/AdSenseDisplay";
+import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -24,7 +25,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://24jobsalert.dreamdazzly.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://mediresponse.org/24jobsalert";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -81,14 +82,14 @@ export const metadata: Metadata = {
     title: "24jobsalerts — Latest Government Jobs & Sarkari Naukri 2026",
     description: "Latest Indian government job notifications updated daily.",
     images: [
-      { url: "/og-default.png", width: 1200, height: 630, alt: "24jobsalerts" },
+      { url: `${SITE_URL}/og-default.png`, width: 1200, height: 630, alt: "24jobsalerts" },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "24jobsalerts — Latest Government Jobs 2026",
     description: "Latest Indian government job notifications updated daily.",
-    images: ["/og-default.png"],
+    images: [`${SITE_URL}/og-default.png`],
   },
   category: "jobs",
 };
@@ -138,6 +139,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
+        <FirebaseAnalytics />
         <SiteTopAd />
         <Header />
         {children}

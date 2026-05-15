@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import JobCard from "../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
+import type { Job } from "@/lib/seo";
 
 function LatestJobsContent() {
   const searchParams = useSearchParams();
@@ -15,7 +16,7 @@ function LatestJobsContent() {
   const [qualification] = useState(searchParams.get("qualification") || "");
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
 
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +35,7 @@ function LatestJobsContent() {
       const val = decodeURIComponent(match.split("=")[1]);
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) {
-        return parsed.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
+        return parsed.map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
       }
       return [];
     } catch {

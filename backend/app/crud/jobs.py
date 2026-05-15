@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 
@@ -73,8 +74,36 @@ def list_jobs(
     conditions.append(Job.url != banned_url)
 
     if search:
-        like = f"%{search.lower()}%"
-        conditions.append(func.lower(Job.title).like(like))
+        # Strict, relevance-focused search:
+        #   * Only the columns that genuinely describe the job are searched —
+        #     dates, fees, URLs and process boilerplate are excluded so they
+        #     can't pull in unrelated matches.
+        #   * Each search term must appear as a WHOLE WORD (Postgres regex
+        #     word boundary \y) so "ca" no longer matches "California" and
+        #     "art" no longer matches "smart" or "article".
+        #   * Every term must match at least one field (AND across terms,
+        #     OR across fields).
+        searchable_columns = [
+            Job.title,
+            Job.qualification,
+            Job.job_type,
+            Job.category,
+            Job.intro_text,
+            Job.eligibility_text,
+            Job.requirement_text,
+        ]
+        raw_terms = [t for t in search.strip().split() if t]
+        if not raw_terms:
+            raw_terms = [search.strip()]
+        for term in raw_terms:
+            # Escape regex metacharacters so user input like "C++" or "10+2"
+            # is treated literally rather than as a regex pattern.
+            escaped = re.escape(term)
+            pattern = rf"\y{escaped}\y"
+            # op("~*") is Postgres case-insensitive regex match
+            conditions.append(
+                or_(*[col.op("~*")(pattern) for col in searchable_columns])
+            )
 
     if job_type:
         conditions.append(Job.job_type == job_type)

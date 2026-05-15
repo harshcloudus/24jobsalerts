@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import JobCard from "../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
+import type { Job } from "@/lib/seo";
 
 /** Material symbol name per job type (sector tiles) */
 type JobTypeBrand = {
@@ -83,7 +84,7 @@ function JobTypesContent() {
 
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [activeJobType, setActiveJobType] = useState("");
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,7 +104,7 @@ function JobTypesContent() {
       const val = decodeURIComponent(match.split("=")[1]);
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) {
-        return parsed.map((v: any) => Number(v)).filter((n: number) => !Number.isNaN(n));
+        return parsed.map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
       }
       return [];
     } catch {

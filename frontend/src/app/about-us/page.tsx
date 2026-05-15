@@ -38,7 +38,7 @@ export default function AboutUsPage() {
             jobs, or roles filtered by your qualification.
           </p>
           <p>
-            We don't sell premium tiers, coaching, or "guaranteed selection"
+            We don&apos;t sell premium tiers, coaching, or &ldquo;guaranteed selection&rdquo;
             packages. Browsing every listing, bookmarking jobs, and weekly
             email alerts are completely free.
           </p>

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { Job } from "@/lib/seo";
 
 interface JobCardProps {
-  job: any;
+  job: Job;
   isSaved?: boolean;
   onToggleSaved?: (id: number) => void;
   showBookmark?: boolean;
@@ -84,7 +85,7 @@ export default function JobCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onToggleSaved && onToggleSaved(job.id);
+              if (onToggleSaved) onToggleSaved(job.id);
             }}
             aria-label={isSaved ? "Remove bookmark" : "Save job"}
           >

@@ -40,14 +40,14 @@ function WhyUsRow({
   label: string;
 }) {
   return (
-    <li className="flex min-h-10 items-center gap-3 text-[14px] leading-snug text-on-dark-muted">
+    <li className="flex min-h-9 items-center gap-2.5 text-[13px] leading-snug text-on-dark-muted sm:min-h-10 sm:gap-3 sm:text-[14px]">
       <span
-        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] ring-1 ring-inset ring-white/[0.08]"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] ring-1 ring-inset ring-white/[0.08] sm:h-10 sm:w-10"
         aria-hidden
       >
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-sm">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm sm:h-8 sm:w-8">
           <span
-            className="material-symbols-rounded text-[20px] leading-none text-white select-none"
+            className="material-symbols-rounded text-[18px] leading-none text-white select-none sm:text-[20px]"
             style={{
               fontVariationSettings: "'FILL' 1, 'wght' 500",
             }}
@@ -119,9 +119,9 @@ export default function Footer() {
   return (
     <footer className="footer-region mt-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 pb-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-0 lg:items-start">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 pb-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10 md:grid-cols-12 md:gap-x-6 md:gap-y-10 lg:gap-x-8 lg:gap-y-0 lg:items-start">
           {/* Brand + newsletter */}
-          <div className="min-w-0 sm:col-span-2 lg:col-span-4">
+          <div className="min-w-0 col-span-2 sm:col-span-2 md:col-span-12 lg:col-span-4">
             <div className="flex max-w-lg flex-col gap-3">
               <Link
                 href="/"
@@ -189,7 +189,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <nav className="min-w-0 lg:col-span-2" aria-label="Explore">
+          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Explore">
             <h5 className={FOOTER_COL_HEAD}>Explore</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_EXPLORE.map(({ href, label }) => (
@@ -202,7 +202,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav className="min-w-0 lg:col-span-2" aria-label="Company">
+          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Company">
             <h5 className={FOOTER_COL_HEAD}>Company</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_COMPANY.map(({ href, label }) => (
@@ -215,7 +215,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav className="min-w-0 lg:col-span-2" aria-label="Legal">
+          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Legal">
             <h5 className={FOOTER_COL_HEAD}>Legal</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_LEGAL.map(({ href, label }) => (
@@ -228,7 +228,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <div className="min-w-0 lg:col-span-2">
+          <div className="min-w-0 md:col-span-3 lg:col-span-2">
             <h5 className={FOOTER_COL_HEAD}>Why us</h5>
             <ul className="flex flex-col gap-3">
               <WhyUsRow icon="verified" label="Verified listings" />
