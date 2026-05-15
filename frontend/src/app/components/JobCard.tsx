@@ -51,34 +51,35 @@ function getRelativeDate(dateStr: string): string {
 }
 
 function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
-  if (typeof window === "undefined") {
-    fallback();
-    return;
-  }
+  window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+  //   if (typeof window === "undefined") {
+  //     fallback();
+  //     return;
+  //   }
 
-  if (typeof (window as any).adBreak !== "function") {
-    fallback();
-    return;
-  }
+  //   if (typeof (window as any).adBreak !== "function") {
+  //     fallback();
+  //     return;
+  //   }
 
-  (window as any).adBreak({
-    type: "reward",
-    name: "game_start",
-    beforeReward(showAdFn: (delay: number) => void) {
-      showAdFn(0);
-    },
-    adDismissed() {},
-    adViewed() {},
-    adBreakDone(info: { breakStatus?: string }) {
-      if (info && info.breakStatus === "viewed") {
-        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
-      } else if (info && info.breakStatus === "dismissed") {
-        alert("⚠️ Please watch the full ad to play this game.");
-      } else {
-        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
-      }
-    },
-  });
+  //   (window as any).adBreak({
+  //     type: "reward",
+  //     name: "game_start",
+  //     beforeReward(showAdFn: (delay: number) => void) {
+  //       showAdFn(0);
+  //     },
+  //     adDismissed() {},
+  //     adViewed() {},
+  //     adBreakDone(info: { breakStatus?: string }) {
+  //       if (info && info.breakStatus === "viewed") {
+  //         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+  //       } else if (info && info.breakStatus === "dismissed") {
+  //         alert("⚠️ Please watch the full ad to play this game.");
+  //       } else {
+  //         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+  //       }
+  //     },
+  //   });
 }
 
 export default function JobCard({
