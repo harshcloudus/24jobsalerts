@@ -105,16 +105,37 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
         />
-        {/* Ad Placement API bootstrap — must run before adsbygoogle.js */}
-        <Script id="ad-placement-init" strategy="beforeInteractive">
-          {`window.adBreak=window.adConfig=function(o){(window.__adPlacements=window.__adPlacements||[]).push(o);};`}
-        </Script>
+        {/*
+          Ad Placement API bootstrap.
+          Must run BEFORE adsbygoogle.js loads so queued calls are not lost.
+          When H5 Games Ads is enabled in AdSense, adsbygoogle.js replaces
+          window.adBreak with the real implementation and calls onReady, which
+          sets window.__adBreakReady = true.
+          When H5 Games Ads is NOT enabled, adsbygoogle.js never replaces the
+          placeholder and __adBreakReady stays false → adManager falls through
+          to the custom modal immediately with no waiting.
+        */}
+        <Script id="ad-placement-bootstrap" strategy="beforeInteractive">{`
+window.adBreak = window.adConfig = function(o) {
+  (window.adsbygoogle = window.adsbygoogle || []).push(o);
+};
+`}</Script>
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4476723703068552"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        {/* Tell the Ad Placement API to preload ads and notify us when ready */}
+        <Script id="ad-placement-config" strategy="afterInteractive">{`
+window.adConfig && window.adConfig({
+  preloadAdBreaks: 'on',
+  sound: 'off',
+  onReady: function() {
+    window.__adBreakReady = true;
+  }
+});
+`}</Script>
         <Script id="gtm-script" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
