@@ -71,11 +71,11 @@ function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
     adViewed() {},
     adBreakDone(info: { breakStatus?: string }) {
       if (info && info.breakStatus === "viewed") {
-        fallback();
+        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       } else if (info && info.breakStatus === "dismissed") {
         alert("⚠️ Please watch the full ad to play this game.");
       } else {
-        fallback();
+        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       }
     },
   });
