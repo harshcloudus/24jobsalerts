@@ -8,11 +8,9 @@ import AdSenseDisplay from "./components/AdSenseDisplay";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
 import type { Job } from "@/lib/seo";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(
-  /\/$/,
-  ""
-);
-
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
+).replace(/\/$/, "");
 
 export default function Home() {
   const router = useRouter();
@@ -41,10 +39,12 @@ export default function Home() {
     if (t.includes("police")) return "local_police";
     if (t.includes("health")) return "health_and_safety";
     if (t.includes("railway")) return "train";
-    if (t.includes("municipal") || t.includes("corporation")) return "location_city";
+    if (t.includes("municipal") || t.includes("corporation"))
+      return "location_city";
     if (t.includes("post office") || t.includes("postal")) return "mail";
     if (t.includes("airline")) return "flight";
-    if (t.includes("psc") || t.includes("public service")) return "account_balance";
+    if (t.includes("psc") || t.includes("public service"))
+      return "account_balance";
     if (t.includes("bank")) return "account_balance_wallet";
     if (t.includes("forest")) return "park";
     if (t.includes("private")) return "work";
@@ -56,7 +56,9 @@ export default function Home() {
   };
 
   const handleQualification = (qualification: string) => {
-    router.push(`/qualifications?qualification=${encodeURIComponent(qualification)}`);
+    router.push(
+      `/qualifications?qualification=${encodeURIComponent(qualification)}`,
+    );
   };
 
   useEffect(() => {
@@ -213,13 +215,14 @@ export default function Home() {
         <div className="hero-bg" />
         <div className="hero-grid-overlay" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 text-center">
-
           {/* Badge */}
           <div className="inline-flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-white/[0.06] px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-[13px] text-on-dark mb-4 sm:mb-5 max-w-full">
             <span className="hero-badge-dot" />
             <span className="hidden sm:inline">Updated daily ·</span>
             <span className="sm:hidden">Daily ·</span>
-            <span className="hero-badge-chip whitespace-nowrap">2,438 this week</span>
+            <span className="hero-badge-chip whitespace-nowrap">
+              2,438 this week
+            </span>
           </div>
 
           {/* Heading */}
@@ -230,24 +233,46 @@ export default function Home() {
 
           {/* Sub */}
           <p className="text-[14px] sm:text-[17px] text-on-dark-muted leading-[1.55] max-w-[60ch] mx-auto mb-6 sm:mb-7 px-1 sm:px-2">
-            Verified government, banking, railway and private listings —
-            sorted, searchable, and saved before the deadline catches you off
-            guard.
+            Verified government, banking, railway and private listings — sorted,
+            searchable, and saved before the deadline catches you off guard.
           </p>
 
           {/* Search bar — dual field */}
           <form className="hero-search-bar" onSubmit={handleHeroSearch}>
             <label className="hero-search-field">
-              <span className="material-symbols-rounded" style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}>search</span>
-              <input type="text" name="search" placeholder="Job title, exam, or employer" />
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}
+              >
+                search
+              </span>
+              <input
+                type="text"
+                name="search"
+                placeholder="Job title, exam, or employer"
+              />
             </label>
             <span className="hero-search-divider" aria-hidden />
             <label className="hero-search-field">
-              <span className="material-symbols-rounded" style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}>tune</span>
-              <input type="text" name="qualification" placeholder="Qualification or type" />
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "20px", color: "var(--color-text-subtle)" }}
+              >
+                tune
+              </span>
+              <input
+                type="text"
+                name="qualification"
+                placeholder="Qualification or type"
+              />
             </label>
             <button className="btn-primary" type="submit">
-              <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>search</span>
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "18px" }}
+              >
+                search
+              </span>
               Find jobs
             </button>
           </form>
@@ -272,7 +297,7 @@ export default function Home() {
         </div>
       </section>
 
-      <AdSenseDisplay variant="wide" className="py-6" />
+      {/* <AdSenseDisplay variant="wide" className="py-6" /> */}
 
       {/* ===== INLINE SEARCH RESULTS ===== */}
       {searchActive && (
@@ -340,7 +365,10 @@ export default function Home() {
                 className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
                 aria-label="Previous page"
               >
-                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                <span
+                  className="material-symbols-rounded"
+                  style={{ fontSize: "20px" }}
+                >
                   chevron_left
                 </span>
               </button>
@@ -348,12 +376,17 @@ export default function Home() {
                 Page {searchPage} of {searchTotalPages}
               </span>
               <button
-                onClick={() => setSearchPage((p) => Math.min(searchTotalPages, p + 1))}
+                onClick={() =>
+                  setSearchPage((p) => Math.min(searchTotalPages, p + 1))
+                }
                 disabled={searchPage >= searchTotalPages}
                 className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
                 aria-label="Next page"
               >
-                <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                <span
+                  className="material-symbols-rounded"
+                  style={{ fontSize: "20px" }}
+                >
                   chevron_right
                 </span>
               </button>
@@ -419,7 +452,9 @@ export default function Home() {
                 <div key={i} className="skeleton h-20 rounded-2xl" />
               ))
             ) : homeJobTypes.length === 0 ? (
-              <div className="col-span-full text-center text-text-muted py-6">No data.</div>
+              <div className="col-span-full text-center text-text-muted py-6">
+                No data.
+              </div>
             ) : (
               homeJobTypes.map((type) => (
                 <button
@@ -429,14 +464,18 @@ export default function Home() {
                   className="tile"
                 >
                   <div className="tile-icon">
-                    <span className="material-symbols-rounded">{getJobTypeIcon(type)}</span>
+                    <span className="material-symbols-rounded">
+                      {getJobTypeIcon(type)}
+                    </span>
                   </div>
                   <div className="tile-body">
                     <div className="tile-title">{type}</div>
                     <div className="tile-count">Browse jobs</div>
                   </div>
                   <div className="tile-arrow">
-                    <span className="material-symbols-rounded">arrow_forward</span>
+                    <span className="material-symbols-rounded">
+                      arrow_forward
+                    </span>
                   </div>
                 </button>
               ))
@@ -445,7 +484,7 @@ export default function Home() {
         </div>
       </section>
 
-      <AdSenseDisplay variant="wide" className="py-6" />
+      {/* <AdSenseDisplay variant="wide" className="py-6" /> */}
 
       {/* ===== QUALIFICATIONS ===== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
@@ -468,7 +507,9 @@ export default function Home() {
               <div key={i} className="skeleton h-20 rounded-2xl" />
             ))
           ) : homeQualifications.length === 0 ? (
-            <div className="col-span-full text-center text-text-muted py-6">No data.</div>
+            <div className="col-span-full text-center text-text-muted py-6">
+              No data.
+            </div>
           ) : (
             homeQualifications.map((qual) => (
               <button
@@ -478,14 +519,18 @@ export default function Home() {
                 className="tile qual-tile"
               >
                 <div className="tile-icon">
-                  <span className="material-symbols-rounded">{getQualificationIcon(qual)}</span>
+                  <span className="material-symbols-rounded">
+                    {getQualificationIcon(qual)}
+                  </span>
                 </div>
                 <div className="tile-body">
                   <div className="tile-title">{qual}</div>
                   <div className="tile-count">View jobs</div>
                 </div>
                 <div className="tile-arrow">
-                  <span className="material-symbols-rounded">arrow_forward</span>
+                  <span className="material-symbols-rounded">
+                    arrow_forward
+                  </span>
                 </div>
               </button>
             ))
@@ -539,8 +584,8 @@ export default function Home() {
               Built for serious job seekers.
             </h2>
             <p className="text-base text-text-body leading-relaxed">
-              Clean, accurate, daily-updated job alerts with direct links to
-              the official source.
+              Clean, accurate, daily-updated job alerts with direct links to the
+              official source.
             </p>
           </div>
 
@@ -571,12 +616,17 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center mb-4">
                   <span
                     className="material-symbols-rounded text-primary"
-                    style={{ fontSize: "20px", fontVariationSettings: "'FILL' 1" }}
+                    style={{
+                      fontSize: "20px",
+                      fontVariationSettings: "'FILL' 1",
+                    }}
                   >
                     {icon}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-ink mb-1.5">{title}</h3>
+                <h3 className="text-base font-semibold text-ink mb-1.5">
+                  {title}
+                </h3>
                 <p className="text-sm text-text-body leading-relaxed">{desc}</p>
               </div>
             ))}
