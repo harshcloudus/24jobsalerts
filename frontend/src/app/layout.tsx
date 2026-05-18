@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: SITE_URL },
   icons: {
-    apple: `${BASE_PATH}/24jobsalerts_favicon.png`,
+    apple: `${SITE_URL}/24jobsalerts_favicon.png`,
   },
   openGraph: {
     type: "website",
@@ -82,7 +82,12 @@ export const metadata: Metadata = {
     title: "24JobsAlerts — Latest Government Jobs & Sarkari Naukri 2026",
     description: "Latest Indian government job notifications updated daily.",
     images: [
-      { url: `${SITE_URL}/og-default.png`, width: 1200, height: 630, alt: "24JobsAlerts" },
+      {
+        url: `${SITE_URL}/og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: "24JobsAlerts",
+      },
     ],
   },
   twitter: {
