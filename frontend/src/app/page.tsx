@@ -41,14 +41,19 @@ export default function Home() {
     return "work";
   };
 
+  const slugify = (s: string) =>
+    s
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
   const handleJobType = (type: string) => {
-    router.push(`/job-types?job_type=${encodeURIComponent(type)}`);
+    router.push(`/job-types/${slugify(type)}`);
   };
 
   const handleQualification = (qualification: string) => {
-    router.push(
-      `/qualifications?qualification=${encodeURIComponent(qualification)}`,
-    );
+    router.push(`/qualifications/${slugify(qualification)}`);
   };
 
   useEffect(() => {
