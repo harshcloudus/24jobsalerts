@@ -102,6 +102,7 @@ export default function JobCard({
   const jobHref = buildJobSlug(title, job.id);
 
   const handleCardClick = (jobHref: string) => {
+    console.log("jobHref", jobHref);
     navigateWithAdBreak(jobHref, () => router.push(jobHref));
   };
 
