@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contact us",
   description:
-    "Get in touch with 24jobsalerts support. Reach us for feedback, corrections, or help.",
+    "Get in touch with 24JobsAlerts support. Reach us for feedback, corrections, or help.",
 };
 
 const SUPPORT_EMAIL = "24jobsalert@mediresponse.org";

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "Read the 24jobsalerts privacy policy and how we handle information on this website.",
+    "Read the 24JobsAlerts privacy policy and how we handle information on this website.",
 };
 
 const SECTIONS = [
@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
             Privacy policy
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-on-dark-muted max-w-2xl">
-            How we handle information when you use 24jobsalerts.
+            How we handle information when you use 24JobsAlerts.
           </p>
         </div>
       </section>

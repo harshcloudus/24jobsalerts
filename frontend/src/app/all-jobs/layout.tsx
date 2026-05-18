@@ -3,7 +3,7 @@ import { siteUrl } from "@/lib/seo";
 
 const title = "All Government Jobs in India";
 const description =
-  "Browse every government job notification listed on 24jobsalerts — central, state, banking, defence, railway, teaching and more, with eligibility and direct apply links.";
+  "Browse every government job notification listed on 24JobsAlerts — central, state, banking, defence, railway, teaching and more, with eligibility and direct apply links.";
 const canonical = `${siteUrl()}/all-jobs`;
 const ogImage = `${siteUrl()}/og-default.png`;
 
@@ -18,16 +18,16 @@ export const metadata: Metadata = {
     "state government jobs",
     "psu jobs",
     "free job alert",
-    "24jobsalerts",
+    "24JobsAlerts",
   ],
   openGraph: {
     title,
     description,
     url: canonical,
-    siteName: "24jobsalerts",
+    siteName: "24JobsAlerts",
     type: "website",
     locale: "en_IN",
-    images: [{ url: ogImage, width: 1200, height: 630, alt: "24jobsalerts" }],
+    images: [{ url: ogImage, width: 1200, height: 630, alt: "24JobsAlerts" }],
   },
   twitter: {
     card: "summary_large_image",

@@ -1,12 +1,128 @@
 import re
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.sql import case
 from sqlalchemy.orm import Session
 
 from ..models import Job
+
+
+# Tile shown for rows whose job_type is NULL/blank.
+OTHER_CATEGORY = "Other"
+
+# Per-category keyword lists used to broaden the filter beyond strict
+# equality. When the user picks a category, we search these keywords as
+# whole words (case-insensitive) across job_type + title + intro_text +
+# category. Example: clicking "Government Bank Job" returns every row
+# whose text mentions "bank" / "SBI" / "RBI" / etc., even if its raw
+# job_type is the generic "Government Job".
+#
+# Keys MUST exactly match the raw Job.job_type values that exist in the
+# DB — we do NOT invent new tiles. If a brand-new raw value appears in
+# the DB and isn't a key here, the filter falls back to deriving
+# keywords from the name itself (see _keywords_for_category).
+CATEGORY_KEYWORDS: Dict[str, List[str]] = {
+    "Government Job": [
+        "government", "govt", "sarkari", "ministry",
+        "psu", "public sector",
+    ],
+    "Private Job": [
+        "private", "pvt ltd", "private limited", "company", "mnc",
+    ],
+    "Government Post Office Job": [
+        "post office", "postal", "india post", "gds",
+        "gramin dak sevak",
+    ],
+    "Government Railway Job": [
+        "railway", "railways", "rrb", "rrc", "indian rail",
+        "metro rail", "konkan railway", "dfccil",
+    ],
+    "Government Police Job": [
+        "police", "crpf", "bsf", "cisf", "itbp", "ssb",
+        "paramilitary",
+    ],
+    "Government PSC Job": [
+        "psc", "upsc", "public service commission", "tnpsc",
+        "mpsc", "appsc", "kpsc", "tspsc", "wbpsc", "bpsc",
+    ],
+    "Government Bank Job": [
+        "bank", "banking", "sbi", "rbi", "ibps", "nabard",
+        "sidbi", "punjab national", "canara",
+    ],
+    "Government Airline Job": [
+        "airline", "airlines", "aviation", "airport", "aai",
+        "air india",
+    ],
+    "Government High Court Job": [
+        "high court", "supreme court", "district court", "court",
+        "judicial", "judiciary",
+    ],
+    "Government Forest Job": [
+        "forest", "wildlife", "forestry",
+    ],
+    "Government Health Department Job": [
+        "health", "hospital", "medical", "aiims", "icmr",
+        "nhm", "esic", "nurse", "doctor", "pharmacist",
+        "paramedical",
+    ],
+    "Government Municipal Job": [
+        "municipal", "municipality", "corporation", "nagar nigam",
+        "nagar palika", "panchayat",
+    ],
+}
+
+
+def _strip_generic_words(name: str) -> List[str]:
+    # Pulls the "meaningful" tokens out of a category name by dropping
+    # filler words. Used as a fallback so brand-new raw job_type values
+    # still produce a reasonable keyword search without code changes.
+    stopwords = {
+        "government", "govt", "job", "jobs", "department", "the", "of",
+        "a", "an", "and", "for",
+    }
+    tokens = re.findall(r"[a-z0-9]+", name.lower())
+    return [t for t in tokens if t and t not in stopwords]
+
+
+def _keywords_for_category(name: str) -> List[str]:
+    if name in CATEGORY_KEYWORDS:
+        return CATEGORY_KEYWORDS[name]
+    derived = _strip_generic_words(name)
+    # If nothing meaningful is left (e.g. "Government Job" without a
+    # mapping), fall back to the raw name itself so we at least match it.
+    return derived or [name.lower()]
+
+
+def _keyword_regex(keywords: List[str]) -> str:
+    # Postgres regex with word boundaries (\y), case-insensitive applied
+    # at call site via lower(). Escape so multi-word keywords like
+    # "post office" or "pvt ltd" work as literals.
+    escaped = [re.escape(k.strip().lower()) for k in keywords if k.strip()]
+    if not escaped:
+        return r"$^"  # matches nothing
+    return r"\y(?:" + "|".join(escaped) + r")\y"
+
+
+def _category_match_condition(category: str):
+    """SQL condition: rows that belong to the given category, by keyword
+    match across job_type + title + intro_text + category."""
+    if category == OTHER_CATEGORY:
+        # "Other" = rows with no job_type AND no other category match.
+        return or_(Job.job_type.is_(None), func.trim(Job.job_type) == "")
+    keywords = _keywords_for_category(category)
+    pattern = _keyword_regex(keywords)
+    haystack = func.lower(
+        func.concat_ws(
+            " ",
+            func.coalesce(Job.job_type, ""),
+            func.coalesce(Job.title, ""),
+            func.coalesce(Job.intro_text, ""),
+            func.coalesce(Job.category, ""),
+        )
+    )
+    return haystack.op("~")(pattern)
 
 
 # Normalized qualification buckets -> raw text fragments to match in Job.qualification
@@ -106,7 +222,12 @@ def list_jobs(
             )
 
     if job_type:
-        conditions.append(Job.job_type == job_type)
+        # Don't filter by strict equality on job_type. Instead match the
+        # category's keywords across job_type + title + intro_text +
+        # category, so e.g. "Government Bank Job" returns every row that
+        # mentions a bank even if its raw job_type is just "Government
+        # Job". "Other" picks up rows with no job_type at all.
+        conditions.append(_category_match_condition(job_type))
 
     if qualification:
         bucket = QUALIFICATION_BUCKETS.get(qualification)
@@ -166,12 +287,30 @@ def get_job(db: Session, job_id: int) -> Optional[Job]:
 
 
 def distinct_filters(db: Session):
-    job_types = [
-        r[0]
-        for r in db.execute(
-            select(func.distinct(Job.job_type)).where(Job.job_type.isnot(None))
-        ).all()
-    ]
+    # Tiles = the raw job_type values that already exist in the DB
+    # (deduped, blanks dropped), plus "Other" when there are NULL/blank
+    # rows. We do NOT invent new tiles. New raw values added by the
+    # scraper appear automatically the next time the API is called.
+    rows = db.execute(
+        select(Job.job_type, func.count())
+        .where(Job.url != "https://www.jobkaka.com/")
+        .group_by(Job.job_type)
+    ).all()
+
+    has_blank = False
+    raw_values: List[Tuple[str, int]] = []
+    for value, count in rows:
+        if value is None or not value.strip():
+            has_blank = True
+        else:
+            raw_values.append((value.strip(), count))
+
+    # Stable order: most populous first, then alphabetical.
+    raw_values.sort(key=lambda r: (-r[1], r[0].lower()))
+    job_types = [v for v, _ in raw_values]
+    if has_blank:
+        job_types.append(OTHER_CATEGORY)
+
     # Use normalized qualification buckets instead of raw distinct values
     qualifications = list(QUALIFICATION_BUCKETS.keys())
     categories = [
@@ -181,4 +320,22 @@ def distinct_filters(db: Session):
         ).all()
     ]
     return job_types, qualifications, categories
+
+
+def unmapped_job_types(db: Session) -> List[Tuple[str, int]]:
+    """Raw Job.job_type values that don't have an entry in
+    CATEGORY_KEYWORDS yet. The filter still works for these (it falls
+    back to deriving keywords from the name), but adding an explicit
+    keyword list gives cleaner results. Use this to spot new variations
+    coming out of the scraper.
+    """
+    rows = db.execute(
+        select(Job.job_type, func.count().label("n"))
+        .where(Job.url != "https://www.jobkaka.com/")
+        .where(Job.job_type.isnot(None))
+        .where(func.trim(Job.job_type) != "")
+        .group_by(Job.job_type)
+        .order_by(func.count().desc())
+    ).all()
+    return [(r[0], r[1]) for r in rows if r[0] not in CATEGORY_KEYWORDS]
 

@@ -82,7 +82,7 @@ export default function Header() {
           >
             <Image
               src={`${BASE_PATH}/24jobsalerts_logo.png`}
-              alt="24jobsalerts"
+              alt="24JobsAlerts"
               width={140}
               height={36}
               priority

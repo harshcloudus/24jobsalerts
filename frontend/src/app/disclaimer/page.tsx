@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Disclaimer",
-  description: "Read the 24jobsalerts disclaimer.",
+  description: "Read the 24JobsAlerts disclaimer.",
 };
 
 export default function DisclaimerPage() {
@@ -25,7 +25,7 @@ export default function DisclaimerPage() {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <article className="card-base p-5 sm:p-6 md:p-10 prose-clean text-text-body leading-relaxed">
           <p>
-            24jobsalerts is an informational portal that aggregates and
+            24JobsAlerts is an informational portal that aggregates and
             presents job-related content. We are not affiliated with any
             government department or recruiting organization unless explicitly
             stated.

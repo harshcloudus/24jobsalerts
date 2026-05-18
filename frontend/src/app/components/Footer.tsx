@@ -240,7 +240,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-5 sm:flex-row">
           <p className="text-center text-[13px] text-on-dark-muted sm:text-left">
-            © {new Date().getFullYear()} 24jobsalerts. All rights reserved.
+            © {new Date().getFullYear()} 24JobsAlerts. All rights reserved.
           </p>
           <p className="text-center text-[13px] text-on-dark-muted sm:text-right">
             Made for job seekers across India.

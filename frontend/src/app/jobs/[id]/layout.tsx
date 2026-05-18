@@ -63,10 +63,10 @@ export async function generateMetadata({
       title,
       description,
       url: canonical,
-      siteName: "24jobsalerts",
+      siteName: "24JobsAlerts",
       type: "article",
       locale: "en_IN",
-      images: [{ url: ogImage, width: 1200, height: 630, alt: "24jobsalerts" }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: "24JobsAlerts" }],
     },
     twitter: {
       card: "summary_large_image",

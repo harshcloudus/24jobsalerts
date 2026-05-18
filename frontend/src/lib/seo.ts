@@ -61,7 +61,7 @@ export function parseHiringOrgName(job: JobLike): string {
       /* ignore */
     }
   }
-  return "24jobsalerts";
+  return "24JobsAlerts";
 }
 
 export function buildMetaDescription(job: JobLike): string {
@@ -72,7 +72,7 @@ export function buildMetaDescription(job: JobLike): string {
   parts.push(`Apply online for ${job.title}.`);
   if (job.last_date) parts.push(`Last date ${job.last_date}.`);
   if (job.qualification) parts.push(`Eligibility: ${job.qualification}.`);
-  parts.push("Latest government job notification on 24jobsalerts.");
+  parts.push("Latest government job notification on 24JobsAlerts.");
   return trimToLen(parts.join(" "), 155);
 }
 
@@ -89,7 +89,7 @@ export function buildKeywords(job: JobLike): string[] {
     "government job 2026",
     "free job alert",
     "latest jobs 2026",
-    "24jobsalerts",
+    "24JobsAlerts",
   ].filter((v): v is string => typeof v === "string" && v.length > 0);
   return Array.from(new Set(raw)).slice(0, 12);
 }
@@ -182,12 +182,12 @@ export function buildOrganizationJsonLd(): Record<string, unknown> {
   return {
     "@context": "https://schema.org/",
     "@type": "Organization",
-    name: "24jobsalerts",
+    name: "24JobsAlerts",
     url: base,
     logo: `${base}/24jobsalerts_logo.png`,
     sameAs: [base],
     description:
-      "24jobsalerts publishes the latest Indian government job notifications with eligibility, last date, and direct apply links.",
+      "24JobsAlerts publishes the latest Indian government job notifications with eligibility, last date, and direct apply links.",
   };
 }
 
@@ -196,7 +196,7 @@ export function buildWebSiteJsonLd(): Record<string, unknown> {
   return {
     "@context": "https://schema.org/",
     "@type": "WebSite",
-    name: "24jobsalerts",
+    name: "24JobsAlerts",
     url: base,
     potentialAction: {
       "@type": "SearchAction",

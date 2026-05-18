@@ -7,7 +7,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .crud.jobs import distinct_filters, get_job as get_job_crud, list_jobs
+from .crud.jobs import (
+    distinct_filters,
+    get_job as get_job_crud,
+    list_jobs,
+    unmapped_job_types,
+)
 from .database import Base, engine
 from .deps import get_db
 from .models import NewsletterSubscriber
@@ -149,6 +154,19 @@ def api_filters(db: Session = Depends(get_db)):
         qualifications=[q for q in qualifications if q],
         categories=[c for c in categories if c],
     )
+
+
+@app.get("/api/admin/unmapped-job-types")
+def api_unmapped_job_types(db: Session = Depends(get_db)):
+    """Lists raw Job.job_type values that didn't match any sector bucket
+    (and therefore fell into "Other"), with counts. When a new variation
+    appears here, add a keyword to JOB_TYPE_BUCKETS in crud/jobs.py and it
+    will be re-classified on the next request — no migration needed."""
+    rows = unmapped_job_types(db)
+    return {
+        "total_unmapped_rows": sum(n for _, n in rows),
+        "items": [{"job_type": jt, "count": n} for jt, n in rows],
+    }
 
 
 def _is_valid_email(email: str) -> bool:

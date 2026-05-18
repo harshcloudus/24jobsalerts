@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About us",
   description:
-    "Learn about 24jobsalerts — a clean, free portal for government and private job alerts in India.",
+    "Learn about 24JobsAlerts — a clean, free portal for government and private job alerts in India.",
 };
 
 export default function AboutUsPage() {
@@ -15,7 +15,7 @@ export default function AboutUsPage() {
             About
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-on-dark mb-3">
-            About 24jobsalerts
+            About 24JobsAlerts
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-on-dark-muted max-w-2xl">
             A clean, free portal for government and private job alerts — built
@@ -27,7 +27,7 @@ export default function AboutUsPage() {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <article className="card-base p-5 sm:p-6 md:p-10 prose-clean text-text-body leading-relaxed">
           <p>
-            24jobsalerts curates and organizes job information so you can
+            24JobsAlerts curates and organizes job information so you can
             quickly understand eligibility, application steps, important dates,
             and official links — without sifting through cluttered notice
             boards or spammy job portals.

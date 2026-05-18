@@ -51,7 +51,8 @@ function getRelativeDate(dateStr: string): string {
 }
 
 function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
-  window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
+  window.location.href = basePath + targetUrl;
   //   if (typeof window === "undefined") {
   //     fallback();
   //     return;

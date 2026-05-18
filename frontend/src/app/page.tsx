@@ -413,7 +413,7 @@ export default function Home() {
       <section className="bg-surface border-y border-hairline">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
           <div className="max-w-2xl mb-8 sm:mb-10">
-            <div className="section-eyebrow">Why 24jobsalerts</div>
+            <div className="section-eyebrow">Why 24JobsAlerts</div>
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink mb-3">
               Built for serious job seekers.
             </h2>

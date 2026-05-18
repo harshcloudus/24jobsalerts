@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & conditions",
-  description: "Read the terms and conditions for using 24jobsalerts.",
+  description: "Read the terms and conditions for using 24JobsAlerts.",
 };
 
 const SECTIONS = [
@@ -32,7 +32,7 @@ export default function TermsAndConditionsPage() {
             Terms &amp; conditions
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-on-dark-muted max-w-2xl">
-            By using 24jobsalerts, you agree to the terms below.
+            By using 24JobsAlerts, you agree to the terms below.
           </p>
         </div>
       </section>
