@@ -40,20 +40,17 @@ function WhyUsRow({
   label: string;
 }) {
   return (
-    <li className="flex min-h-9 items-center gap-2.5 text-[13px] leading-snug text-on-dark-muted sm:min-h-10 sm:gap-3 sm:text-[14px]">
+    <li className="flex items-center gap-2.5 text-[13px] leading-snug text-on-dark-muted sm:text-[14px]">
       <span
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] ring-1 ring-inset ring-white/[0.08] sm:h-10 sm:w-10"
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-inset ring-primary/20"
+        style={{ color: "#f5a886" }}
         aria-hidden
       >
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm sm:h-8 sm:w-8">
-          <span
-            className="material-symbols-rounded text-[18px] leading-none text-white select-none sm:text-[20px]"
-            style={{
-              fontVariationSettings: "'FILL' 1, 'wght' 500",
-            }}
-          >
-            {icon}
-          </span>
+        <span
+          className="material-symbols-rounded text-[16px] leading-none select-none"
+          style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
+        >
+          {icon}
         </span>
       </span>
       <span className="min-w-0 flex-1">{label}</span>
@@ -189,7 +186,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Explore">
+          <nav className="min-w-0 order-1 md:order-none md:col-span-3 lg:col-span-2" aria-label="Explore">
             <h5 className={FOOTER_COL_HEAD}>Explore</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_EXPLORE.map(({ href, label }) => (
@@ -202,7 +199,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Company">
+          <nav className="min-w-0 order-3 md:order-none md:col-span-3 lg:col-span-2" aria-label="Company">
             <h5 className={FOOTER_COL_HEAD}>Company</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_COMPANY.map(({ href, label }) => (
@@ -215,7 +212,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav className="min-w-0 md:col-span-3 lg:col-span-2" aria-label="Legal">
+          <nav className="min-w-0 order-2 md:order-none md:col-span-3 lg:col-span-2" aria-label="Legal">
             <h5 className={FOOTER_COL_HEAD}>Legal</h5>
             <ul className="flex flex-col gap-1.5">
               {COLUMN_LEGAL.map(({ href, label }) => (
@@ -228,12 +225,12 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <div className="min-w-0 md:col-span-3 lg:col-span-2">
+          <div className="min-w-0 order-4 md:order-none md:col-span-3 lg:col-span-2">
             <h5 className={FOOTER_COL_HEAD}>Why us</h5>
             <ul className="flex flex-col gap-3">
               <WhyUsRow icon="verified" label="Verified listings" />
               <WhyUsRow icon="update" label="Daily updates" />
-              <WhyUsRow icon="lock" label="Privacy-first" />
+              <WhyUsRow icon="lock" label="Privacy first" />
             </ul>
           </div>
         </div>

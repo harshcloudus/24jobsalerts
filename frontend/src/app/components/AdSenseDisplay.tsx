@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -33,11 +33,9 @@ export default function AdSenseDisplay({
   className = "",
   wrapperClassName = "",
   minHeightClassName = "min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]",
-  labelText = "Advertisements",
 }: Props) {
   const pushed = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
-  const [adHidden, setAdHidden] = useState(false);
 
   useEffect(() => {
     if (pushed.current || !insRef.current) return;
@@ -64,40 +62,25 @@ export default function AdSenseDisplay({
       if (pushInterval) window.clearInterval(pushInterval);
     }, 12000);
 
-    // Watch data-ad-status: AdSense sets "unfilled" when no ad is available
-    const ins = insRef.current;
-    const observer = new MutationObserver(() => {
-      const status = ins.getAttribute("data-ad-status");
-      if (status === "unfilled") setAdHidden(true);
-    });
-    observer.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
-
-    // Fallback: if height is still 0 after 6 s, assume no ad loaded
-    const fallbackTimer = window.setTimeout(() => {
-      if (ins.offsetHeight === 0) setAdHidden(true);
-    }, 6000);
-
     return () => {
       if (pushInterval) window.clearInterval(pushInterval);
       window.clearTimeout(pushTimeout);
-      window.clearTimeout(fallbackTimer);
-      observer.disconnect();
     };
   }, []);
 
-  if (adHidden) return null;
-
   const adBody = (
     <div className={`${outerClass[variant]} ${className}`.trim()}>
-      <ins
-        ref={insRef}
-        className="adsbygoogle"
-        style={{ display: "block", width: "100%" }}
-        data-ad-client={AD_CLIENT}
-        data-ad-slot={AD_SLOT}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
+      <div className={minHeightClassName}>
+        <ins
+          ref={insRef}
+          className="adsbygoogle"
+          style={{ display: "block", width: "100%" }}
+          data-ad-client={AD_CLIENT}
+          data-ad-slot={AD_SLOT}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      </div>
     </div>
   );
 

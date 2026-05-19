@@ -72,12 +72,12 @@ export default function Header() {
       className="sticky top-0 z-50 nav-solid transition-shadow duration-300"
       style={{ boxShadow: scrolled ? "0 1px 12px rgba(0,30,43,0.06)" : undefined }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16 min-w-0 gap-2 sm:gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16 min-w-0 gap-1.5 sm:gap-3">
           {/* Logo + desktop nav — links follow the logo closely */}
           <Link
             href="/"
-            className="flex items-center gap-2 shrink-0"
+            className="flex items-center gap-2 shrink min-w-0"
             onClick={closeMenu}
           >
             <Image
@@ -86,7 +86,7 @@ export default function Header() {
               width={140}
               height={36}
               priority
-              className="h-8 w-auto"
+              className="h-7 sm:h-8 w-auto max-w-[140px]"
             />
           </Link>
 
@@ -103,7 +103,7 @@ export default function Header() {
           </div>
 
           {/* Right side — bookmark circle + CTA (no search) */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0 ml-auto">
+          <div className="flex items-center justify-end gap-1.5 sm:gap-3 shrink-0 ml-auto">
             <Link
               href="/bookmarks"
               className={`header-icon-btn${isActive("/bookmarks") ? " border-primary/40" : ""}`}
@@ -115,7 +115,7 @@ export default function Header() {
             >
               <span
                 className="material-symbols-rounded"
-                style={{ fontSize: "22px", fontVariationSettings: "'FILL' 0" }}
+                style={{ fontSize: "20px", fontVariationSettings: "'FILL' 0" }}
               >
                 bookmark
               </span>
@@ -126,9 +126,9 @@ export default function Header() {
               ) : null}
             </Link>
 
-            <Link href="/latest-jobs" className="hidden sm:inline-flex btn-primary">
-              Browse jobs
-              <span className="material-symbols-rounded" style={{ fontSize: "16px" }}>
+            <Link href="/latest-jobs" className="btn-primary header-cta">
+              <span className="header-cta-label">Browse jobs</span>
+              <span className="material-symbols-rounded header-cta-arrow" style={{ fontSize: "16px" }}>
                 arrow_forward
               </span>
             </Link>
@@ -136,7 +136,7 @@ export default function Header() {
             {/* Mobile hamburger */}
             <button
               type="button"
-              className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-hairline-strong bg-canvas text-ink hover:bg-surface transition-colors"
+              className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-hairline-strong bg-canvas text-ink hover:bg-surface transition-colors shrink-0"
               onClick={() => setIsOpen((o) => !o)}
               aria-label="Toggle navigation"
               aria-expanded={isOpen}
