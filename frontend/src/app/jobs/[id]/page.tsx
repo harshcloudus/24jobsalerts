@@ -151,7 +151,7 @@ export default function JobDetailPage() {
 
   const isUrl = (s: string) => /^https?:\/\/\S+$/i.test(s);
   const isDomain = (s: string) =>
-    /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9-]+)+(?:\/[\w\-./?&=#%]*)?$/i.test(
+    /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(?:\/[\w\-./?&=#%]*)?$/i.test(
       s
     );
   const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
@@ -213,11 +213,14 @@ export default function JobDetailPage() {
     forceLink: boolean = false
   ): React.ReactNode => {
     // Forward-compatible: support { text, href } objects from updated scrapers.
+    // Only render as a clickable link inside "Important Links" tables (forceLink),
+    // so regular data cells like Post Name / Salary stay as plain text even when
+    // the scraper happened to capture an href on them.
     if (cell && typeof cell === "object" && "text" in (cell as Record<string, unknown>)) {
       const obj = cell as { text?: string; href?: string | null };
       const text = normalizeText(String(obj.text ?? ""));
       const href = obj.href && typeof obj.href === "string" ? obj.href.trim() : "";
-      if (text && href) {
+      if (text && href && forceLink) {
         return (
           <a
             href={toAbsoluteUrl(href)}
@@ -454,7 +457,7 @@ export default function JobDetailPage() {
                             {table.columns.map((col: string, cIdx: number) => (
                               <th
                                 key={cIdx}
-                                className="border-b border-hairline-strong bg-surface px-4 py-3 text-left font-semibold text-ink text-[13px] tracking-tight"
+                                className="border-b border-hairline-strong bg-surface px-4 py-3 text-left font-semibold text-ink text-[13px] tracking-tight whitespace-nowrap"
                               >
                                 {col}
                               </th>
@@ -473,7 +476,7 @@ export default function JobDetailPage() {
                             {row.map((cell: JobTableCell, dIdx: number) => (
                               <td
                                 key={dIdx}
-                                className="px-4 py-3 text-text-body align-top"
+                                className="px-4 py-3 text-text-body align-top whitespace-nowrap"
                               >
                                 {renderCellContent(
                                   cell,

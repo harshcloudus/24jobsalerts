@@ -327,14 +327,14 @@ export default function Home() {
 
       {/* ===== QUALIFICATIONS ===== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
-          <div>
+        <div className="flex items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-10">
+          <div className="min-w-0">
             <div className="section-eyebrow">Browse by qualification</div>
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
+            <h2 className="text-lg sm:text-3xl font-semibold tracking-[-0.015em] text-ink">
               Jobs that fit what you&apos;ve earned
             </h2>
           </div>
-          <Link href="/qualifications" className="view-all">
+          <Link href="/qualifications" className="view-all shrink-0">
             All qualifications
             <span className="material-symbols-rounded">arrow_forward</span>
           </Link>
