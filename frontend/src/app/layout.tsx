@@ -72,6 +72,10 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: SITE_URL },
   icons: {
+    icon: [
+      { url: `${SITE_URL}/24jobsalerts_favicon.png`, type: "image/png" },
+    ],
+    shortcut: `${SITE_URL}/24jobsalerts_favicon.png`,
     apple: `${SITE_URL}/24jobsalerts_favicon.png`,
   },
   openGraph: {
