@@ -1,0 +1,54 @@
+name: Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            set -e
+
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            PM2_APP_NAME="${{ secrets.PM2_APP_NAME }}"
+
+            echo "Deploying to: $DEPLOY_PATH"
+
+            # Pull latest code
+            cd "$DEPLOY_PATH"
+            git pull origin main
+
+            # Update .env file
+            cat > "$DEPLOY_PATH/.env" << 'ENVEOF'
+            ${{ secrets.ENV_VALUES }}
+            ENVEOF
+
+            # Install backend dependencies (if applicable)
+            if [ -f "$DEPLOY_PATH/package.json" ]; then
+              npm install --production
+            fi
+
+            # Build frontend
+            cd "$DEPLOY_PATH/frontend"
+            npm install
+            npm run build
+
+            # Restart PM2 process
+            pm2 restart "$PM2_APP_NAME"
+            pm2 save
+
+            echo "Deployment complete."
