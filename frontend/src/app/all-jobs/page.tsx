@@ -8,13 +8,17 @@ import type { Job } from "@/lib/seo";
 
 function AllJobsContent() {
   const searchParams = useSearchParams();
-  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+  const API_BASE = (
+    process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
+  ).replace(/\/$/, "");
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
   const [jobType] = useState(searchParams.get("job_type") || "");
   const [qualification] = useState(searchParams.get("qualification") || "");
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("page") || "1"),
+  );
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -23,19 +27,23 @@ function AllJobsContent() {
   const [categories, setCategories] = useState<string[]>([]);
   const [savedIds, setSavedIds] = useState<number[]>([]);
 
-  const pageSize = 9;
+  const pageSize = 12;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const cookieKey = "saved_job_ids";
 
   const readSavedIdsFromCookie = () => {
     if (typeof document === "undefined") return [];
-    const match = document.cookie.split("; ").find((row) => row.startsWith(`${cookieKey}=`));
+    const match = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${cookieKey}=`));
     if (!match) return [];
     try {
       const val = decodeURIComponent(match.split("=")[1]);
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) {
-        return parsed.map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
+        return parsed
+          .map((v: unknown) => Number(v))
+          .filter((n: number) => !Number.isNaN(n));
       }
       return [];
     } catch {
@@ -130,7 +138,10 @@ function AllJobsContent() {
       <section className="hero-band-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-20">
           <div className="max-w-3xl">
-            <div className="section-eyebrow" style={{ color: "var(--color-primary)" }}>
+            <div
+              className="section-eyebrow"
+              style={{ color: "var(--color-primary)" }}
+            >
               All opportunities
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-on-dark mb-3">
@@ -168,7 +179,10 @@ function AllJobsContent() {
                 aria-label="Find jobs"
               >
                 <span className="hidden sm:inline">Find jobs</span>
-                <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>
+                <span
+                  className="material-symbols-rounded"
+                  style={{ fontSize: "18px" }}
+                >
                   arrow_forward
                 </span>
               </button>
@@ -190,7 +204,9 @@ function AllJobsContent() {
                 setCategory("");
                 setCurrentPage(1);
               }}
-              className={category === "" ? "pill-tab pill-tab-active" : "pill-tab"}
+              className={
+                category === "" ? "pill-tab pill-tab-active" : "pill-tab"
+              }
             >
               All
             </button>
@@ -202,7 +218,9 @@ function AllJobsContent() {
                   setCategory(c);
                   setCurrentPage(1);
                 }}
-                className={category === c ? "pill-tab pill-tab-active" : "pill-tab"}
+                className={
+                  category === c ? "pill-tab pill-tab-active" : "pill-tab"
+                }
               >
                 {categoryLabel(c)}
               </button>
@@ -224,12 +242,17 @@ function AllJobsContent() {
           ) : jobs.length === 0 ? (
             <div className="col-span-full card-base text-center py-16 text-text-muted">
               <div className="w-12 h-12 rounded-full bg-surface mx-auto mb-3 flex items-center justify-center">
-                <span className="material-symbols-rounded text-text-muted" style={{ fontSize: "22px" }}>
+                <span
+                  className="material-symbols-rounded text-text-muted"
+                  style={{ fontSize: "22px" }}
+                >
                   search_off
                 </span>
               </div>
               <p className="font-medium text-ink mb-1">No jobs found</p>
-              <p className="text-sm">Try a different keyword or clear the filter.</p>
+              <p className="text-sm">
+                Try a different keyword or clear the filter.
+              </p>
             </div>
           ) : (
             jobs.map((job, idx) => (
@@ -253,7 +276,10 @@ function AllJobsContent() {
               className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
               aria-label="Previous page"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "20px" }}
+              >
                 chevron_left
               </span>
             </button>
@@ -266,7 +292,10 @@ function AllJobsContent() {
               className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
               aria-label="Next page"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+              <span
+                className="material-symbols-rounded"
+                style={{ fontSize: "20px" }}
+              >
                 chevron_right
               </span>
             </button>

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import JobCard from "../../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
-import { getJobTypeIcon, sortJobTypes } from "@/lib/jobTypeIcons";
+import { sortJobTypes } from "@/lib/jobTypeIcons";
 import type { Job } from "@/lib/seo";
 
 const slugify = (s: string) =>
@@ -15,8 +15,18 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
+const makeComboLabel = (qual: string, type: string): string => {
+  const simplified = type
+    .replace(/\s+job$/i, "")
+    .replace(/^government\s+/i, "")
+    .trim();
+  return `${qual} ${simplified} Jobs`;
+};
+
 function QualificationDetailContent() {
-  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+  const API_BASE = (
+    process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
+  ).replace(/\/$/, "");
   const params = useParams<{ slug: string }>();
   const slug = params?.slug || "";
 
@@ -37,13 +47,17 @@ function QualificationDetailContent() {
 
   const readSavedIdsFromCookie = () => {
     if (typeof document === "undefined") return [];
-    const match = document.cookie.split("; ").find((row) => row.startsWith(`${cookieKey}=`));
+    const match = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${cookieKey}=`));
     if (!match) return [];
     try {
       const val = decodeURIComponent(match.split("=")[1]);
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) {
-        return parsed.map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
+        return parsed
+          .map((v: unknown) => Number(v))
+          .filter((n: number) => !Number.isNaN(n));
       }
       return [];
     } catch {
@@ -122,12 +136,14 @@ function QualificationDetailContent() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && currentPage > 1 && topRef.current) {
-      const offset = topRef.current.getBoundingClientRect().top + window.scrollY - 120;
+      const offset =
+        topRef.current.getBoundingClientRect().top + window.scrollY - 120;
       window.scrollTo({ top: offset, behavior: "smooth" });
     }
   }, [currentPage]);
 
-  const displayName = resolvedQual || (unknownQual ? "Unknown qualification" : "Loading…");
+  const displayName =
+    resolvedQual || (unknownQual ? "Unknown qualification" : "Loading…");
 
   return (
     <div className="bg-canvas">
@@ -140,13 +156,19 @@ function QualificationDetailContent() {
                 href="/qualifications"
                 className="inline-flex items-center gap-1 text-sm text-on-dark-muted hover:text-on-dark transition-colors"
               >
-                <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>
+                <span
+                  className="material-symbols-rounded"
+                  style={{ fontSize: "18px" }}
+                >
                   arrow_back
                 </span>
                 All qualifications
               </Link>
             </div>
-            <div className="section-eyebrow" style={{ color: "var(--color-primary)" }}>
+            <div
+              className="section-eyebrow"
+              style={{ color: "var(--color-primary)" }}
+            >
               Qualification
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-on-dark mb-3 break-words">
@@ -156,8 +178,8 @@ function QualificationDetailContent() {
               {loadingQual
                 ? "Loading qualification…"
                 : unknownQual
-                ? "This qualification could not be found."
-                : `${totalItems.toLocaleString()} ${totalItems === 1 ? "opening" : "openings"} matching ${resolvedQual}.`}
+                  ? "This qualification could not be found."
+                  : `${totalItems.toLocaleString()} ${totalItems === 1 ? "opening" : "openings"} matching ${resolvedQual}.`}
             </p>
           </div>
         </div>
@@ -169,41 +191,48 @@ function QualificationDetailContent() {
         {unknownQual ? (
           <div className="card-base text-center py-16 text-text-muted">
             <div className="w-12 h-12 rounded-full bg-surface mx-auto mb-3 flex items-center justify-center">
-              <span className="material-symbols-rounded text-text-muted" style={{ fontSize: "22px" }}>
+              <span
+                className="material-symbols-rounded text-text-muted"
+                style={{ fontSize: "22px" }}
+              >
                 search_off
               </span>
             </div>
             <p className="font-medium text-ink mb-1">Qualification not found</p>
-            <p className="text-sm mb-5">We couldn&apos;t find a qualification that matches this URL.</p>
-            <Link href="/qualifications" className="btn-primary inline-flex items-center gap-1 px-4 py-2">
+            <p className="text-sm mb-5">
+              We couldn&apos;t find a qualification that matches this URL.
+            </p>
+            <Link
+              href="/qualifications"
+              className="btn-primary inline-flex items-center gap-1 px-4 py-2"
+            >
               Browse all qualifications
             </Link>
           </div>
         ) : (
           <>
-            {/* Cross-catalog: job types */}
-            {jobTypes.length > 0 && (
+            {/* Qualification + Job Type combo links */}
+            {jobTypes.length > 0 && resolvedQual && (
               <div className="mb-10 sm:mb-12">
                 <h2 className="text-xs font-semibold tracking-[0.10em] text-text-subtle uppercase mb-3 sm:mb-4">
                   Browse by sector
                 </h2>
-                <div className="tile-grid">
+                <div className="flex flex-col gap-3">
                   {jobTypes.map((type) => (
                     <Link
                       key={type}
-                      href={`/job-types/${slugify(type)}`}
-                      className="tile"
+                      href={`/all-jobs?qualification=${encodeURIComponent(resolvedQual)}&job_type=${encodeURIComponent(type)}`}
+                      className="qual-combo-btn"
                     >
-                      <div className="tile-icon">
-                        <span className="material-symbols-rounded">{getJobTypeIcon(type)}</span>
-                      </div>
-                      <div className="tile-body">
-                        <div className="tile-title">{type}</div>
-                        <div className="tile-count">Browse jobs</div>
-                      </div>
-                      <div className="tile-arrow">
-                        <span className="material-symbols-rounded">arrow_forward</span>
-                      </div>
+                      <span className="material-symbols-rounded qual-combo-icon">
+                        play_arrow
+                      </span>
+                      <span className="qual-combo-label">
+                        {makeComboLabel(resolvedQual, type)}
+                      </span>
+                      <span className="material-symbols-rounded qual-combo-arrow">
+                        arrow_forward
+                      </span>
                     </Link>
                   ))}
                 </div>
@@ -217,7 +246,9 @@ function QualificationDetailContent() {
                   {resolvedQual} jobs
                 </h3>
                 <p className="text-xs sm:text-sm text-text-muted mt-1">
-                  {totalItems.toLocaleString()} {totalItems === 1 ? "job" : "jobs"} matching this qualification
+                  {totalItems.toLocaleString()}{" "}
+                  {totalItems === 1 ? "job" : "jobs"} matching this
+                  qualification
                 </p>
               </div>
             </div>
@@ -235,12 +266,17 @@ function QualificationDetailContent() {
               ) : !loadingJobs && jobs.length === 0 ? (
                 <div className="col-span-full card-base text-center py-16 text-text-muted">
                   <div className="w-12 h-12 rounded-full bg-surface mx-auto mb-3 flex items-center justify-center">
-                    <span className="material-symbols-rounded text-text-muted" style={{ fontSize: "22px" }}>
+                    <span
+                      className="material-symbols-rounded text-text-muted"
+                      style={{ fontSize: "22px" }}
+                    >
                       search_off
                     </span>
                   </div>
                   <p className="font-medium text-ink mb-1">No jobs found</p>
-                  <p className="text-sm">No openings for {resolvedQual} right now.</p>
+                  <p className="text-sm">
+                    No openings for {resolvedQual} right now.
+                  </p>
                 </div>
               ) : (
                 jobs.map((job, idx) => (
@@ -268,7 +304,10 @@ function QualificationDetailContent() {
                   className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
                   aria-label="Previous page"
                 >
-                  <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  <span
+                    className="material-symbols-rounded"
+                    style={{ fontSize: "20px" }}
+                  >
                     chevron_left
                   </span>
                 </button>
@@ -286,7 +325,10 @@ function QualificationDetailContent() {
                   className="w-10 h-10 rounded-full border border-hairline-strong text-ink disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface transition-colors flex items-center justify-center shrink-0"
                   aria-label="Next page"
                 >
-                  <span className="material-symbols-rounded" style={{ fontSize: "20px" }}>
+                  <span
+                    className="material-symbols-rounded"
+                    style={{ fontSize: "20px" }}
+                  >
                     chevron_right
                   </span>
                 </button>

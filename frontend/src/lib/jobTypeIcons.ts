@@ -46,15 +46,28 @@ export function getJobTypeIcon(type: string): string {
   return fallbacks[hash % fallbacks.length];
 }
 
+const JOB_TYPE_ORDER: Record<string, number> = {
+  "government job": 0,
+  "private job": 1,
+  "government railway job": 2,
+  "government bank job": 3,
+  "government police job": 4,
+  "government post office job": 5,
+  "government airline job": 6,
+  "government forest job": 7,
+  "government health job": 8,
+  "government high court job": 9,
+  "government municipal job": 10,
+  "government psc job": 11,
+  "other": 99,
+};
+
 export function sortJobTypes(types: string[]): string[] {
   return [...types].sort((a, b) => {
-    const norm = (s: string) => s.toLowerCase().trim();
-    const aNorm = norm(a);
-    const bNorm = norm(b);
-    const aScore =
-      aNorm === "government job" ? 0 : aNorm === "private job" ? 1 : 2;
-    const bScore =
-      bNorm === "government job" ? 0 : bNorm === "private job" ? 1 : 2;
+    const aNorm = a.toLowerCase().trim();
+    const bNorm = b.toLowerCase().trim();
+    const aScore = aNorm in JOB_TYPE_ORDER ? JOB_TYPE_ORDER[aNorm] : 50;
+    const bScore = bNorm in JOB_TYPE_ORDER ? JOB_TYPE_ORDER[bNorm] : 50;
     if (aScore !== bScore) return aScore - bScore;
     return a.localeCompare(b);
   });
