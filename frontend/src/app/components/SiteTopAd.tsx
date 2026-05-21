@@ -1,9 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import AdSenseDisplay from "./AdSenseDisplay";
 
-/** Ad slot above the site header on every page. */
+const HIDDEN_ON = ["/latest-jobs"];
+
+/** Ad slot above the site header — hidden on certain pages. */
 export default function SiteTopAd() {
+  const pathname = usePathname();
+  const hide = HIDDEN_ON.some((p) => pathname === p || pathname === p + "/");
+  if (hide) return null;
+
   return (
     <AdSenseDisplay
       variant="wide"
