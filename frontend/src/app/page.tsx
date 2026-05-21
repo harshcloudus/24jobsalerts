@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/app/components/HardLink";
 import { useEffect, useState } from "react";
+
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 import JobCard from "./components/JobCard";
 import AdSenseDisplay from "./components/AdSenseDisplay";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
@@ -13,7 +14,6 @@ const API_BASE = (
 ).replace(/\/$/, "");
 
 export default function Home() {
-  const router = useRouter();
   const [homeQualifications, setHomeQualifications] = useState<string[]>([]);
   const [loadingHomeQuals, setLoadingHomeQuals] = useState(true);
   const [homeJobTypes, setHomeJobTypes] = useState<string[]>([]);
@@ -49,11 +49,11 @@ export default function Home() {
       .replace(/^-|-$/g, "");
 
   const handleJobType = (type: string) => {
-    router.push(`/job-types/${slugify(type)}`);
+    window.location.href = `${BASE_PATH}/job-types/${slugify(type)}`;
   };
 
   const handleQualification = (qualification: string) => {
-    router.push(`/qualifications/${slugify(qualification)}`);
+    window.location.href = `${BASE_PATH}/qualifications/${slugify(qualification)}`;
   };
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export default function Home() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (qualification) params.set("qualification", qualification);
-    router.push(`/search?${params.toString()}`);
+    window.location.href = `${BASE_PATH}/search?${params.toString()}`;
   };
 
   return (

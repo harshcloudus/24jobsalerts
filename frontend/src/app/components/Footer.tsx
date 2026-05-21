@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/HardLink";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 

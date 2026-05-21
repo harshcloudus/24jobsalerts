@@ -153,6 +153,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
       <body
         className={`${bricolageGrotesque.variable} ${plusJakartaSans.variable} antialiased font-body bg-canvas text-ink`}
+        suppressHydrationWarning
       >
         {/* Google Tag Manager (noscript) */}
         <noscript>

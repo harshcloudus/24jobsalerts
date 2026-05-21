@@ -56,7 +56,7 @@ let rewardAdInProgress = false;
 function isAutoAdShowing(): boolean {
   // Check for full-screen Google ad iframes (covers > 90% of viewport)
   const iframes = document.querySelectorAll<HTMLIFrameElement>(
-    'iframe[id^="google_ads_iframe"], iframe[src*="googleads"], iframe[src*="doubleclick"]'
+    'iframe[id^="google_ads_iframe"], iframe[src*="googleads"], iframe[src*="doubleclick"]',
   );
   for (const iframe of Array.from(iframes)) {
     const rect = iframe.getBoundingClientRect();
@@ -64,59 +64,80 @@ function isAutoAdShowing(): boolean {
       rect.width >= window.innerWidth * 0.9 ||
       rect.height >= window.innerHeight * 0.9
     ) {
+      console.log("Auto ad detected.");
       return true;
     }
   }
   // Check for AdSense interstitial / overlay containers
   const overlay = document.querySelector<HTMLElement>(
-    '#google_esf, [data-google-interstitial]'
+    "#google_esf, [data-google-interstitial]",
   );
   if (overlay) {
     const s = getComputedStyle(overlay);
-    if (s.display !== "none" && s.visibility !== "hidden") return true;
+    if (s.display !== "none" && s.visibility !== "hidden") {
+      console.log("Auto ad detected.");
+      return true;
+    }
   }
+  console.log("No auto ads detected.");
   return false;
 }
 
-function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
+async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
+  console.log("Navigating with ad break to", targetUrl);
   if (typeof window === "undefined") {
     fallback();
     return;
   }
 
   // Auto ad is already visible — skip reward ad and navigate directly
+  console.log("Checking for auto ads...", isAutoAdShowing());
   if (isAutoAdShowing()) {
     fallback();
     return;
   }
 
   // Reward ad already in progress — ignore duplicate click
+  console.log("Checking for auto rewardAdInProgress...", rewardAdInProgress);
   if (rewardAdInProgress) {
     return;
   }
 
   if (typeof (window as any).adBreak !== "function") {
+    console.warn("adBreak API not available, navigating without ad...");
     fallback();
     return;
   }
 
   rewardAdInProgress = true;
-
-  (window as any).adBreak({
+  console.log("Triggering reward ad break for navigation to", targetUrl);
+  await (window as any).adBreak({
     type: "reward",
     name: "game_start",
     beforeReward(showAdFn: (delay: number) => void) {
+      console.log("Before reward callback, showing ad immediately.");
       showAdFn(0);
     },
-    adDismissed() {},
-    adViewed() {},
+    adDismissed() {
+      console.log("Ad dismissed, showing alert and not navigating.");
+      rewardAdInProgress = false;
+      alert("⚠️ Please watch the full ad to play this game.");
+    },
+    adViewed() {
+      console.log("Ad viewed, proceeding to navigate.");
+    },
     adBreakDone(info: { breakStatus?: string }) {
       rewardAdInProgress = false;
       if (info && info.breakStatus === "viewed") {
+        console.log("Ad viewed, proceeding to navigate.");
         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       } else if (info && info.breakStatus === "dismissed") {
+        console.log("Ad dismissed, showing alert and not navigating.");
         alert("⚠️ Please watch the full ad to play this game.");
       } else {
+        console.log(
+          "Ad break done without clear status, proceeding to navigate.",
+        );
         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       }
     },
@@ -129,7 +150,6 @@ export default function JobCard({
   onToggleSaved,
   showBookmark = false,
 }: JobCardProps) {
-  const router = useRouter();
   const title: string = job.title || "Untitled role";
   const shortTitle = title.length > 140 ? `${title.slice(0, 137)}…` : title;
   const shortname = getEmployerShortname(title);
@@ -143,7 +163,11 @@ export default function JobCard({
   const jobHref = buildJobSlug(title, job.id);
 
   const handleCardClick = (jobHref: string) => {
-    navigateWithAdBreak(jobHref, () => router.push(jobHref));
+    navigateWithAdBreak(
+      jobHref,
+      () =>
+        (window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + jobHref),
+    );
   };
 
   return (

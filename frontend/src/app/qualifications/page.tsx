@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/HardLink";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
 
 const slugify = (s: string) =>

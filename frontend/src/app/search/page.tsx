@@ -1,8 +1,10 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import Link from "@/app/components/HardLink";
+
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 import JobCard from "../components/JobCard";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
 import type { Job } from "@/lib/seo";
@@ -12,7 +14,6 @@ const API_BASE = (
 ).replace(/\/$/, "");
 
 function SearchPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const searchQuery = searchParams.get("search") || "";
@@ -93,7 +94,7 @@ function SearchPageContent() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (qualification) params.set("qualification", qualification);
-    router.push(`/search?${params.toString()}`);
+    window.location.href = `${BASE_PATH}/search?${params.toString()}`;
   };
 
   const navigatePage = (page: number) => {
@@ -101,7 +102,7 @@ function SearchPageContent() {
     if (searchQuery) params.set("search", searchQuery);
     if (qualificationQuery) params.set("qualification", qualificationQuery);
     params.set("page", String(page));
-    router.push(`/search?${params.toString()}`);
+    window.location.href = `${BASE_PATH}/search?${params.toString()}`;
   };
 
   return (

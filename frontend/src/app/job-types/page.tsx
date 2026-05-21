@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/HardLink";
 import { getJobTypeIcon, sortJobTypes } from "@/lib/jobTypeIcons";
 
 const slugify = (s: string) =>

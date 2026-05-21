@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/HardLink";
 import JobCard from "../components/JobCard";
 import type { Job } from "@/lib/seo";
 

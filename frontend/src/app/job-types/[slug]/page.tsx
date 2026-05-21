@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import Link from "@/app/components/HardLink";
 import JobCard from "../../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
