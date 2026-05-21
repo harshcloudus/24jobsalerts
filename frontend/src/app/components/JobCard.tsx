@@ -122,7 +122,7 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
         const w = window as unknown as { adBreak?: (o: object) => void };
         if (typeof w.adBreak === "function") {
           w.adBreak({
-            type: "next",
+            type: "start",
             name: randomAdName(),
             adBreakDone() {
               console.log("Vignette ad break done, navigating.");

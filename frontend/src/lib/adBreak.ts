@@ -72,7 +72,7 @@ export function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
         console.log("Reward ad not shown, trying vignette ad...");
         if (typeof win.adBreak === "function") {
           win.adBreak({
-            type: "next",
+            type: "start",
             name: randomAdName(),
             adBreakDone() {
               console.log("Vignette ad break done, navigating.");
