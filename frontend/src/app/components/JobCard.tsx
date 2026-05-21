@@ -112,17 +112,27 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
     adBreakDone(info: { breakStatus?: string }) {
       rewardAdInProgress = false;
       console.log("Ad break done with info:", info);
-      if (info && info.breakStatus === "viewed") {
-        console.log("Ad viewed, proceeding to navigate.");
-        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
-      } else if (info && info.breakStatus === "dismissed") {
-        console.log("Ad dismissed, proceeding to navigate.");
+      const status = info?.breakStatus;
+      if (status === "viewed" || status === "dismissed") {
+        console.log("Reward ad shown, proceeding to navigate.");
         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       } else {
-        console.log(
-          "Ad break done without clear status, proceeding to navigate.",
-        );
-        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+        // Reward ad not shown — try vignette interstitial instead
+        console.log("Reward ad not shown, trying vignette ad...");
+        const w = window as unknown as { adBreak?: (o: object) => void };
+        if (typeof w.adBreak === "function") {
+          w.adBreak({
+            type: "next",
+            name: randomAdName(),
+            adBreakDone() {
+              console.log("Vignette ad break done, navigating.");
+              window.location.href =
+                process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+            },
+          });
+        } else {
+          window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+        }
       }
     },
   });
