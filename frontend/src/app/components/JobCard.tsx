@@ -49,6 +49,15 @@ function getRelativeDate(dateStr: string): string {
   }
 }
 
+const AD_NAMES = [
+  "game_start",
+  "game_stop",
+  "game_restart",
+  "next_game",
+] as const;
+const randomAdName = () =>
+  AD_NAMES[Math.floor(Math.random() * AD_NAMES.length)];
+
 // Prevents triggering a reward ad when one is already in progress
 let rewardAdInProgress = false;
 
@@ -88,7 +97,7 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
   console.log("Triggering reward ad break for navigation to", targetUrl);
   await (window as any).adBreak({
     type: "reward",
-    name: "game_start",
+    name: randomAdName(),
     beforeReward(showAdFn: (delay: number) => void) {
       console.log("Before reward callback, showing ad immediately.");
       showAdFn(0);
@@ -96,7 +105,6 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
     adDismissed() {
       console.log("Ad dismissed, showing alert and not navigating.");
       rewardAdInProgress = false;
-      alert("⚠️ Please watch the full ad to play this game.");
     },
     adViewed() {
       console.log("Ad viewed, proceeding to navigate.");
@@ -108,8 +116,8 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
         console.log("Ad viewed, proceeding to navigate.");
         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       } else if (info && info.breakStatus === "dismissed") {
-        console.log("Ad dismissed, showing alert and not navigating.");
-        alert("⚠️ Please watch the full ad to play this game.");
+        console.log("Ad dismissed, proceeding to navigate.");
+        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
       } else {
         console.log(
           "Ad break done without clear status, proceeding to navigate.",
