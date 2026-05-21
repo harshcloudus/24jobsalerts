@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { Job } from "@/lib/seo";
 
 interface JobCardProps {
@@ -54,33 +53,8 @@ function getRelativeDate(dateStr: string): string {
 let rewardAdInProgress = false;
 
 function isAutoAdShowing(): boolean {
-  // Check for full-screen Google ad iframes (covers > 90% of viewport)
-  const iframes = document.querySelectorAll<HTMLIFrameElement>(
-    'iframe[id^="google_ads_iframe"], iframe[src*="googleads"], iframe[src*="doubleclick"]',
-  );
-  for (const iframe of Array.from(iframes)) {
-    const rect = iframe.getBoundingClientRect();
-    if (
-      rect.width >= window.innerWidth * 0.9 ||
-      rect.height >= window.innerHeight * 0.9
-    ) {
-      console.log("Auto ad detected.");
-      return true;
-    }
-  }
-  // Check for AdSense interstitial / overlay containers
-  const overlay = document.querySelector<HTMLElement>(
-    "#google_esf, [data-google-interstitial]",
-  );
-  if (overlay) {
-    const s = getComputedStyle(overlay);
-    if (s.display !== "none" && s.visibility !== "hidden") {
-      console.log("Auto ad detected.");
-      return true;
-    }
-  }
-  console.log("No auto ads detected.");
-  return false;
+  // Google adds #google_vignette to the URL when a vignette (full-screen) auto ad is active
+  return window.location.hash === "#google_vignette";
 }
 
 async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
@@ -100,6 +74,7 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
   // Reward ad already in progress — ignore duplicate click
   console.log("Checking for auto rewardAdInProgress...", rewardAdInProgress);
   if (rewardAdInProgress) {
+    rewardAdInProgress = false; // reset flag in case it was left stuck
     return;
   }
 
