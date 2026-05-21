@@ -50,37 +50,77 @@ function getRelativeDate(dateStr: string): string {
   }
 }
 
+// Prevents triggering a reward ad when one is already in progress
+let rewardAdInProgress = false;
+
+function isAutoAdShowing(): boolean {
+  // Check for full-screen Google ad iframes (covers > 90% of viewport)
+  const iframes = document.querySelectorAll<HTMLIFrameElement>(
+    'iframe[id^="google_ads_iframe"], iframe[src*="googleads"], iframe[src*="doubleclick"]'
+  );
+  for (const iframe of Array.from(iframes)) {
+    const rect = iframe.getBoundingClientRect();
+    if (
+      rect.width >= window.innerWidth * 0.9 ||
+      rect.height >= window.innerHeight * 0.9
+    ) {
+      return true;
+    }
+  }
+  // Check for AdSense interstitial / overlay containers
+  const overlay = document.querySelector<HTMLElement>(
+    '#google_esf, [data-google-interstitial]'
+  );
+  if (overlay) {
+    const s = getComputedStyle(overlay);
+    if (s.display !== "none" && s.visibility !== "hidden") return true;
+  }
+  return false;
+}
+
 function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
-  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
-  window.location.href = basePath + targetUrl;
-  //   if (typeof window === "undefined") {
-  //     fallback();
-  //     return;
-  //   }
+  if (typeof window === "undefined") {
+    fallback();
+    return;
+  }
 
-  //   if (typeof (window as any).adBreak !== "function") {
-  //     fallback();
-  //     return;
-  //   }
+  // Auto ad is already visible — skip reward ad and navigate directly
+  if (isAutoAdShowing()) {
+    fallback();
+    return;
+  }
 
-  //   (window as any).adBreak({
-  //     type: "reward",
-  //     name: "game_start",
-  //     beforeReward(showAdFn: (delay: number) => void) {
-  //       showAdFn(0);
-  //     },
-  //     adDismissed() {},
-  //     adViewed() {},
-  //     adBreakDone(info: { breakStatus?: string }) {
-  //       if (info && info.breakStatus === "viewed") {
-  //         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
-  //       } else if (info && info.breakStatus === "dismissed") {
-  //         alert("⚠️ Please watch the full ad to play this game.");
-  //       } else {
-  //         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
-  //       }
-  //     },
-  //   });
+  // Reward ad already in progress — ignore duplicate click
+  if (rewardAdInProgress) {
+    return;
+  }
+
+  if (typeof (window as any).adBreak !== "function") {
+    fallback();
+    return;
+  }
+
+  rewardAdInProgress = true;
+
+  (window as any).adBreak({
+    type: "reward",
+    name: "game_start",
+    beforeReward(showAdFn: (delay: number) => void) {
+      showAdFn(0);
+    },
+    adDismissed() {},
+    adViewed() {},
+    adBreakDone(info: { breakStatus?: string }) {
+      rewardAdInProgress = false;
+      if (info && info.breakStatus === "viewed") {
+        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+      } else if (info && info.breakStatus === "dismissed") {
+        alert("⚠️ Please watch the full ad to play this game.");
+      } else {
+        window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;
+      }
+    },
+  });
 }
 
 export default function JobCard({
@@ -103,7 +143,6 @@ export default function JobCard({
   const jobHref = buildJobSlug(title, job.id);
 
   const handleCardClick = (jobHref: string) => {
-    console.log("jobHref", jobHref);
     navigateWithAdBreak(jobHref, () => router.push(jobHref));
   };
 
