@@ -3,6 +3,9 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "@/app/components/HardLink";
+import { navigateWithAdBreak } from "@/lib/adBreak";
+
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 import JobCard from "../../components/JobCard";
 import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
 import { sortJobTypes } from "@/lib/jobTypeIcons";
@@ -218,23 +221,32 @@ function QualificationDetailContent() {
                   Browse by sector
                 </h2>
                 <div className="flex flex-col gap-3">
-                  {jobTypes.map((type) => (
-                    <Link
-                      key={type}
-                      href={`/all-jobs?qualification=${encodeURIComponent(resolvedQual)}&job_type=${encodeURIComponent(type)}`}
-                      className="qual-combo-btn"
-                    >
-                      <span className="material-symbols-rounded qual-combo-icon">
-                        play_arrow
-                      </span>
-                      <span className="qual-combo-label">
-                        {makeComboLabel(resolvedQual, type)}
-                      </span>
-                      <span className="material-symbols-rounded qual-combo-arrow">
-                        arrow_forward
-                      </span>
-                    </Link>
-                  ))}
+                  {jobTypes.map((type) => {
+                    const path = `/all-jobs?qualification=${encodeURIComponent(resolvedQual)}&job_type=${encodeURIComponent(type)}`;
+                    return (
+                      <Link
+                        key={type}
+                        href={path}
+                        className="qual-combo-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateWithAdBreak(path, () => {
+                            window.location.href = BASE_PATH + path;
+                          });
+                        }}
+                      >
+                        <span className="material-symbols-rounded qual-combo-icon">
+                          play_arrow
+                        </span>
+                        <span className="qual-combo-label">
+                          {makeComboLabel(resolvedQual, type)}
+                        </span>
+                        <span className="material-symbols-rounded qual-combo-arrow">
+                          arrow_forward
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

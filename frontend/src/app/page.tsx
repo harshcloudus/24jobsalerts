@@ -2,6 +2,7 @@
 
 import Link from "@/app/components/HardLink";
 import { useEffect, useState } from "react";
+import { navigateWithAdBreak } from "@/lib/adBreak";
 
 const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 import JobCard from "./components/JobCard";
@@ -49,11 +50,17 @@ export default function Home() {
       .replace(/^-|-$/g, "");
 
   const handleJobType = (type: string) => {
-    window.location.href = `${BASE_PATH}/job-types/${slugify(type)}`;
+    const path = `/job-types/${slugify(type)}`;
+    navigateWithAdBreak(path, () => {
+      window.location.href = BASE_PATH + path;
+    });
   };
 
   const handleQualification = (qualification: string) => {
-    window.location.href = `${BASE_PATH}/qualifications/${slugify(qualification)}`;
+    const path = `/qualifications/${slugify(qualification)}`;
+    navigateWithAdBreak(path, () => {
+      window.location.href = BASE_PATH + path;
+    });
   };
 
   useEffect(() => {

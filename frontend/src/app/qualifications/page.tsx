@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "@/app/components/HardLink";
 import { getQualificationIcon } from "@/lib/qualificationIcons";
+import { navigateWithAdBreak } from "@/lib/adBreak";
+
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 
 const slugify = (s: string) =>
   s
@@ -73,24 +76,33 @@ export default function Qualifications() {
             </div>
           ) : (
             <div className="tile-grid">
-              {qualifications.map((qual) => (
-                <Link
-                  key={qual}
-                  href={`/qualifications/${slugify(qual)}`}
-                  className="tile qual-tile"
-                >
-                  <div className="tile-icon">
-                    <span className="material-symbols-rounded">{getQualificationIcon(qual)}</span>
-                  </div>
-                  <div className="tile-body">
-                    <div className="tile-title">{qual}</div>
-                    <div className="tile-count">View jobs</div>
-                  </div>
-                  <div className="tile-arrow">
-                    <span className="material-symbols-rounded">arrow_forward</span>
-                  </div>
-                </Link>
-              ))}
+              {qualifications.map((qual) => {
+                const path = `/qualifications/${slugify(qual)}`;
+                return (
+                  <Link
+                    key={qual}
+                    href={path}
+                    className="tile qual-tile"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateWithAdBreak(path, () => {
+                        window.location.href = BASE_PATH + path;
+                      });
+                    }}
+                  >
+                    <div className="tile-icon">
+                      <span className="material-symbols-rounded">{getQualificationIcon(qual)}</span>
+                    </div>
+                    <div className="tile-body">
+                      <div className="tile-title">{qual}</div>
+                      <div className="tile-count">View jobs</div>
+                    </div>
+                    <div className="tile-arrow">
+                      <span className="material-symbols-rounded">arrow_forward</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

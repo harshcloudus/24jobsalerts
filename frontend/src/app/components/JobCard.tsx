@@ -103,6 +103,7 @@ async function navigateWithAdBreak(targetUrl: string, fallback: () => void) {
     },
     adBreakDone(info: { breakStatus?: string }) {
       rewardAdInProgress = false;
+      console.log("Ad break done with info:", info);
       if (info && info.breakStatus === "viewed") {
         console.log("Ad viewed, proceeding to navigate.");
         window.location.href = process.env.NEXT_PUBLIC_BASE_PATH + targetUrl;

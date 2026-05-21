@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "@/app/components/HardLink";
 import { getJobTypeIcon, sortJobTypes } from "@/lib/jobTypeIcons";
+import { navigateWithAdBreak } from "@/lib/adBreak";
+
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 
 const slugify = (s: string) =>
   s
@@ -71,24 +74,33 @@ export default function JobTypes() {
             <div className="text-center text-text-muted py-10">No job types available.</div>
           ) : (
             <div className="tile-grid">
-              {jobTypes.map((type) => (
-                <Link
-                  key={type}
-                  href={`/job-types/${slugify(type)}`}
-                  className="tile"
-                >
-                  <div className="tile-icon">
-                    <span className="material-symbols-rounded">{getJobTypeIcon(type)}</span>
-                  </div>
-                  <div className="tile-body">
-                    <div className="tile-title">{type}</div>
-                    <div className="tile-count">Browse jobs</div>
-                  </div>
-                  <div className="tile-arrow">
-                    <span className="material-symbols-rounded">arrow_forward</span>
-                  </div>
-                </Link>
-              ))}
+              {jobTypes.map((type) => {
+                const path = `/job-types/${slugify(type)}`;
+                return (
+                  <Link
+                    key={type}
+                    href={path}
+                    className="tile"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateWithAdBreak(path, () => {
+                        window.location.href = BASE_PATH + path;
+                      });
+                    }}
+                  >
+                    <div className="tile-icon">
+                      <span className="material-symbols-rounded">{getJobTypeIcon(type)}</span>
+                    </div>
+                    <div className="tile-body">
+                      <div className="tile-title">{type}</div>
+                      <div className="tile-count">Browse jobs</div>
+                    </div>
+                    <div className="tile-arrow">
+                      <span className="material-symbols-rounded">arrow_forward</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
