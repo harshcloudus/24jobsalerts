@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import AdSenseDisplay from "./AdSenseDisplay";
 
-const HIDDEN_ON = ["/latest-jobs"];
+const HIDDEN_ON = ["/latest-jobs", "/job-types"];
 
 /** Ad slot above the site header — hidden on certain pages. */
 export default function SiteTopAd() {
