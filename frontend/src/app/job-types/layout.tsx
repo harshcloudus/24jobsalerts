@@ -4,7 +4,7 @@ import { siteUrl } from "@/lib/seo";
 const title = "Jobs by Type — Permanent, Contract, Internship, Apprentice";
 const description =
   "Government job openings filtered by employment type — permanent, contract, apprenticeship, internship and walk-in interviews across India.";
-const canonical = `${siteUrl()}/job-types`;
+const canonical = `${siteUrl()}/job-types/`;
 const ogImage = `${siteUrl()}/og-default.png`;
 
 export const metadata: Metadata = {

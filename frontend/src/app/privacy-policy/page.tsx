@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
     "Read the 24JobsAlerts privacy policy and how we handle information on this website.",
+  alternates: { canonical: `${siteUrl()}/privacy-policy/` },
 };
 
 const SECTIONS = [

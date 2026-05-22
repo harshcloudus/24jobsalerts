@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Contact us",
   description:
     "Get in touch with 24JobsAlerts support. Reach us for feedback, corrections, or help.",
+  alternates: { canonical: `${siteUrl()}/contact-us/` },
 };
 
 const SUPPORT_EMAIL = "24jobsalert@mediresponse.org";

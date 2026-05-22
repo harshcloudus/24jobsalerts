@@ -70,7 +70,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  alternates: { canonical: SITE_URL },
+  alternates: { canonical: `${SITE_URL}/` },
   icons: {
     icon: [{ url: `${SITE_URL}/24jobsalerts_favicon.png`, type: "image/png" }],
     shortcut: `${SITE_URL}/24jobsalerts_favicon.png`,

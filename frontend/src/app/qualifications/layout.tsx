@@ -4,7 +4,7 @@ import { siteUrl } from "@/lib/seo";
 const title = "Jobs by Qualification — 10th, 12th, Graduate, Diploma, Engineering";
 const description =
   "Find Indian government jobs that match your qualification — 10th pass, 12th pass, graduate, post-graduate, ITI, diploma and engineering openings.";
-const canonical = `${siteUrl()}/qualifications`;
+const canonical = `${siteUrl()}/qualifications/`;
 const ogImage = `${siteUrl()}/og-default.png`;
 
 export const metadata: Metadata = {

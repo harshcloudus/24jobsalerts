@@ -9,7 +9,10 @@ const slugify = (s: string) =>
     .replace(/^-|-$/g, "");
 
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(
+    /\/$/,
+    "",
+  );
 }
 
 async function resolveTypeFromSlug(slug: string): Promise<string | null> {
@@ -34,7 +37,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const resolved = await resolveTypeFromSlug(slug);
   const base = siteUrl();
-  const canonical = `${base}/job-types/${slug}`;
+  const canonical = `${base}/job-types/${slug}/`;
   const ogImage = `${base}/og-default.png`;
 
   if (!resolved) {

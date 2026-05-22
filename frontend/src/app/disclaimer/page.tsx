@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Disclaimer",
   description: "Read the 24JobsAlerts disclaimer.",
+  alternates: { canonical: `${siteUrl()}/disclaimer/` },
 };
 
 export default function DisclaimerPage() {

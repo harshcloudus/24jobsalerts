@@ -11,15 +11,15 @@ type ChangeFreq =
 
 const STATIC_ENTRIES: { path: string; freq: ChangeFreq; pr: number }[] = [
   { path: "/", freq: "daily", pr: 1 },
-  { path: "/latest-jobs", freq: "daily", pr: 0.9 },
-  { path: "/all-jobs", freq: "daily", pr: 0.9 },
-  { path: "/qualifications", freq: "weekly", pr: 0.7 },
-  { path: "/job-types", freq: "weekly", pr: 0.7 },
-  { path: "/about-us", freq: "yearly", pr: 0.4 },
-  { path: "/contact-us", freq: "yearly", pr: 0.4 },
-  { path: "/privacy-policy", freq: "yearly", pr: 0.3 },
-  { path: "/terms-and-conditions", freq: "yearly", pr: 0.3 },
-  { path: "/disclaimer", freq: "yearly", pr: 0.3 },
+  { path: "/latest-jobs/", freq: "daily", pr: 0.9 },
+  { path: "/all-jobs/", freq: "daily", pr: 0.9 },
+  { path: "/qualifications/", freq: "weekly", pr: 0.7 },
+  { path: "/job-types/", freq: "weekly", pr: 0.7 },
+  { path: "/about-us/", freq: "yearly", pr: 0.4 },
+  { path: "/contact-us/", freq: "yearly", pr: 0.4 },
+  { path: "/privacy-policy/", freq: "yearly", pr: 0.3 },
+  { path: "/terms-and-conditions/", freq: "yearly", pr: 0.3 },
+  { path: "/disclaimer/", freq: "yearly", pr: 0.3 },
 ];
 
 export async function GET() {

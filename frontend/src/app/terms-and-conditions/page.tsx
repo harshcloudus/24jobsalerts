@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Terms & conditions",
   description: "Read the terms and conditions for using 24JobsAlerts.",
+  alternates: { canonical: `${siteUrl()}/terms-and-conditions/` },
 };
 
 const SECTIONS = [

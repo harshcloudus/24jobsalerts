@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About us",
   description:
     "Learn about 24JobsAlerts — a clean, free portal for government and private job alerts in India.",
+  alternates: { canonical: `${siteUrl()}/about-us/` },
 };
 
 export default function AboutUsPage() {

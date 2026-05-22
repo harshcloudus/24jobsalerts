@@ -4,7 +4,7 @@ import { siteUrl } from "@/lib/seo";
 const title = "Latest Government Jobs 2026";
 const description =
   "Latest government job notifications updated daily — SSC, UPSC, Railway, Banking, Police, Defence and PSU recruitment with eligibility, last date and direct apply links.";
-const canonical = `${siteUrl()}/latest-jobs`;
+const canonical = `${siteUrl()}/latest-jobs/`;
 const ogImage = `${siteUrl()}/og-default.png`;
 
 export const metadata: Metadata = {

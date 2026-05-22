@@ -43,7 +43,7 @@ export function siteUrl(): string {
 }
 
 export function canonicalForJob(slug: string): string {
-  return `${siteUrl()}/jobs/${slug}`;
+  return `${siteUrl()}/jobs/${slug}/`;
 }
 
 export function trimToLen(s: string, max: number): string {

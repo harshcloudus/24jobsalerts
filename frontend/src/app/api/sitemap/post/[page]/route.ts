@@ -57,7 +57,7 @@ export async function GET(
         const slug = slugify(job.title, job.id);
         const lastmod = safeIsoDate(job.posted_date);
         urls.push(
-          `  <url><loc>${base}/jobs/${slug}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`
+          `  <url><loc>${base}/jobs/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`
         );
       }
       if (data.items.length < API_PAGE_SIZE) break;
