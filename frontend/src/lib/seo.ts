@@ -37,7 +37,9 @@ export interface Job extends JobLike {
 }
 
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://mediresponse.org/24jobsalert").replace(/\/$/, "");
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://mediresponse.org/24jobsalert"
+  ).replace(/\/$/, "");
 }
 
 export function canonicalForJob(slug: string): string {
@@ -94,6 +96,55 @@ export function buildKeywords(job: JobLike): string[] {
   return Array.from(new Set(raw)).slice(0, 12);
 }
 
+const MONTH_MAP: Record<string, string> = {
+  january: "01",
+  february: "02",
+  march: "03",
+  april: "04",
+  may: "05",
+  june: "06",
+  july: "07",
+  august: "08",
+  september: "09",
+  october: "10",
+  november: "11",
+  december: "12",
+};
+
+function parseDateText(text?: string | null): string | null {
+  if (!text) return null;
+  const m = text.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (m) {
+    const day = m[1].padStart(2, "0");
+    const month = MONTH_MAP[m[2].toLowerCase()];
+    if (month) return `${m[3]}-${month}-${day}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  return null;
+}
+
+function parseSalaryText(
+  salary?: string | null,
+): Record<string, unknown> | null {
+  if (!salary) return null;
+  const nums = (salary.match(/[\d,]+/g) || [])
+    .map((n) => parseInt(n.replace(/,/g, ""), 10))
+    .filter((n) => !isNaN(n) && n >= 1000);
+  if (nums.length === 0) return null;
+  const unitText = /month|monthly|p\.?m\b/i.test(salary) ? "MONTH" : "YEAR";
+  const value: Record<string, unknown> = {
+    "@type": "QuantitativeValue",
+    unitText,
+  };
+  if (nums.length >= 2) {
+    value.minValue = Math.min(...nums);
+    value.maxValue = Math.max(...nums);
+  } else {
+    value.value = nums[0];
+  }
+  return { "@type": "MonetaryAmount", currency: "INR", value };
+}
+
 function mapEmploymentType(t?: string | null): string {
   const s = (t || "").toLowerCase();
   if (s.includes("intern")) return "INTERN";
@@ -117,9 +168,10 @@ export function buildJobPostingJsonLd(
   slug: string,
 ): Record<string, unknown> {
   const datePosted = job.posted_date || new Date().toISOString().slice(0, 10);
-  const descHtml = job.intro_text && job.intro_text.trim().length > 0
-    ? introToHtml(job.intro_text.trim())
-    : `<p>${job.title}. Apply on the official website.</p>`;
+  const descHtml =
+    job.intro_text && job.intro_text.trim().length > 0
+      ? introToHtml(job.intro_text.trim())
+      : `<p>${job.title}. Apply on the official website.</p>`;
 
   const org = parseHiringOrgName(job);
   const node: Record<string, unknown> = {
@@ -138,6 +190,10 @@ export function buildJobPostingJsonLd(
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
+        addressLocality: "Surat",
+        streetAddress: "24JobsAlerts, Surat",
+        addressRegion: "Gujarat",
+        postalCode: "395101",
         addressCountry: "IN",
       },
     },
@@ -156,7 +212,12 @@ export function buildJobPostingJsonLd(
   };
 
   if (job.qualification) node.qualifications = job.qualification;
-  if (job.last_date) node.validThrough = job.last_date;
+
+  const validThrough = parseDateText(job.last_date ?? job.last_date_text);
+  if (validThrough) node.validThrough = validThrough;
+
+  const baseSalary = parseSalaryText(job.salary);
+  if (baseSalary) node.baseSalary = baseSalary;
 
   return node;
 }
@@ -171,8 +232,18 @@ export function buildBreadcrumbJsonLd(
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${base}/` },
-      { "@type": "ListItem", position: 2, name: "Jobs", item: `${base}/latest-jobs` },
-      { "@type": "ListItem", position: 3, name: job.title, item: `${base}/jobs/${slug}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Jobs",
+        item: `${base}/latest-jobs`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: job.title,
+        item: `${base}/jobs/${slug}`,
+      },
     ],
   };
 }
