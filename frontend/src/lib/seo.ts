@@ -214,10 +214,12 @@ export function buildJobPostingJsonLd(
   if (job.qualification) node.qualifications = job.qualification;
 
   const validThrough = parseDateText(job.last_date ?? job.last_date_text);
-  if (validThrough) node.validThrough = validThrough;
+  node.validThrough =
+    validThrough ||
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const baseSalary = parseSalaryText(job.salary);
-  if (baseSalary) node.baseSalary = baseSalary;
+  node.baseSalary = baseSalary ?? 0;
 
   return node;
 }
