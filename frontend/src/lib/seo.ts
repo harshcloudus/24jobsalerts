@@ -219,9 +219,12 @@ export function buildJobPostingJsonLd(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const baseSalary = parseSalaryText(job.salary);
-  node.baseSalary =
-    baseSalary ??
-    '{ "@type": "MonetaryAmount", currency: "INR", value": "Not disclosed" }';
+  const notDisclosedSalary = {
+    "@type": "MonetaryAmount",
+    currency: "INR",
+    value: "Not disclosed",
+  };
+  node.baseSalary = baseSalary ?? notDisclosedSalary;
 
   return node;
 }
