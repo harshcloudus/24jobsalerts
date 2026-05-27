@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "@/app/components/HardLink";
-import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { notFound } from "next/navigation";
+import React from "react";
 import AdSenseDisplay from "../../components/AdSenseDisplay";
-import { notifySavedJobsCookieChanged } from "@/lib/savedJobsBroadcast";
+import SaveJobButton from "./SaveJobButton";
 import {
   buildBreadcrumbJsonLd,
   buildJobPostingJsonLd,
@@ -14,278 +12,187 @@ import {
   type JobTableCell,
 } from "@/lib/seo";
 
-export default function JobDetailPage() {
-  const { id } = useParams();
-  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+export const revalidate = 300;
 
-  const [job, setJob] = useState<Job | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function parseNumericId(slug: string): number | null {
+  const parts = slug.split("-");
+  const last = parts[parts.length - 1];
+  const num = Number(last);
+  return Number.isNaN(num) ? null : num;
+}
 
-  const parseNumericId = () => {
-    if (!id) return null;
-    const raw = Array.isArray(id) ? id[0] : (id as string);
-    const parts = raw.split("-");
-    const last = parts[parts.length - 1];
-    const num = Number(last);
-    return Number.isNaN(num) ? null : num;
-  };
+function apiBase(): string {
+  return (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000").replace(/\/$/, "");
+}
 
-  // Always open a job from the top of the page — instant jump, not smooth.
-  // Runs synchronously after mount (and on id change) so the page never appears
-  // mid-scroll when the user clicks into a job.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const prev = document.documentElement.style.scrollBehavior;
-    document.documentElement.style.scrollBehavior = "auto";
-    window.scrollTo(0, 0);
-    document.documentElement.style.scrollBehavior = prev;
-  }, [id]);
+async function fetchJob(numId: number): Promise<Job | null> {
+  try {
+    const res = await fetch(`${apiBase()}/api/jobs/${numId}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as Job;
+  } catch {
+    return null;
+  }
+}
 
-  useEffect(() => {
-    const numId = parseNumericId();
-    if (numId === null) return;
-    async function fetchJobDetail() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`${API_BASE}/api/jobs/${numId}`);
-        if (!res.ok) throw new Error("Job not found");
-        const data = await res.json();
-        setJob(data);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load job");
-      } finally {
-        setLoading(false);
-      }
+const linkClass = "text-primary hover:underline font-medium break-words";
+
+const normalizeText = (s: string) =>
+  s.replace(/ /g, " ").replace(/\s+/g, " ").trim();
+
+const isUrl = (s: string) => /^https?:\/\/\S+$/i.test(s);
+const isDomain = (s: string) =>
+  /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(?:\/[\w\-./?&=#%]*)?$/i.test(
+    s
+  );
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+const ctaPattern =
+  /^(apply now|click here|apply online|apply offline|register now|register here|apply here|download(?:\s+(?:notification|pdf|form|the notification|notification pdf))?|notification|view notification|official notification|application form|download form|view details|check here|get details|here|view here|read more|details here|click to apply|apply|link|view link)$/i;
+
+const toAbsoluteUrl = (raw: string) => {
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^mailto:|^tel:/i.test(raw)) return raw;
+  return `https://${raw.replace(/^www\./i, "")}`;
+};
+
+const truncateForDisplay = (url: string, max = 50) =>
+  url.length <= max ? url : `${url.slice(0, max - 1)}…`;
+
+function linkifyText(text?: string | null): React.ReactNode {
+  if (!text) return text;
+  const urlRegex = /(https?:\/\/[^\s<>"')]+)/gi;
+  const trailingPunct = /[.,;:!?]+$/;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = urlRegex.exec(text)) !== null) {
+    let url = match[0];
+    let tail = "";
+    const punctMatch = url.match(trailingPunct);
+    if (punctMatch) {
+      tail = punctMatch[0];
+      url = url.slice(0, url.length - tail.length);
     }
-    fetchJobDetail();
-  }, [id]);
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <a
+        key={`${match.index}-${url}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+        title={url}
+      >
+        {truncateForDisplay(url)}
+      </a>
+    );
+    if (tail) parts.push(tail);
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? <>{parts}</> : text;
+}
 
-  useEffect(() => {
-    const numId = parseNumericId();
-    if (numId === null) return;
-    if (typeof document === "undefined") return;
-    const key = "saved_job_ids";
-    const match = document.cookie.split("; ").find((row) => row.startsWith(`${key}=`));
-    if (!match) {
-      setIsSaved(false);
-      return;
+function renderCellContent(
+  cell: unknown,
+  fallbackUrl?: string | null,
+  forceLink: boolean = false
+): React.ReactNode {
+  // Forward-compatible: support { text, href } objects from updated scrapers.
+  // Only render as a clickable link inside "Important Links" tables (forceLink),
+  // so regular data cells like Post Name / Salary stay as plain text even when
+  // the scraper happened to capture an href on them.
+  if (cell && typeof cell === "object" && "text" in (cell as Record<string, unknown>)) {
+    const obj = cell as { text?: string; href?: string | null };
+    const text = normalizeText(String(obj.text ?? ""));
+    const href = obj.href && typeof obj.href === "string" ? obj.href.trim() : "";
+    if (text && href && forceLink) {
+      return (
+        <a
+          href={toAbsoluteUrl(href)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+        >
+          {text}
+        </a>
+      );
     }
-    try {
-      const val = decodeURIComponent(match.split("=")[1]);
-      const arr = JSON.parse(val);
-      if (Array.isArray(arr) && arr.map((v) => Number(v)).includes(numId)) {
-        setIsSaved(true);
-      } else {
-        setIsSaved(false);
-      }
-    } catch {
-      setIsSaved(false);
-    }
-  }, [id]);
+    return renderCellContent(text, fallbackUrl, forceLink);
+  }
 
-  const toggleSave = () => {
-    const numId = parseNumericId();
-    if (numId === null || typeof document === "undefined") return;
-    const key = "saved_job_ids";
-    const match = document.cookie.split("; ").find((row) => row.startsWith(`${key}=`));
-    let arr: number[] = [];
-    if (match) {
-      try {
-        const val = decodeURIComponent(match.split("=")[1]);
-        const parsed = JSON.parse(val);
-        if (Array.isArray(parsed)) {
-          arr = parsed.map((v) => Number(v)).filter((n) => !Number.isNaN(n));
-        }
-      } catch {
-        arr = [];
-      }
-    }
-    if (arr.includes(numId)) {
-      arr = arr.filter((n) => n !== numId);
-      setIsSaved(false);
-    } else {
-      arr.push(numId);
-      setIsSaved(true);
-    }
-    const encoded = encodeURIComponent(JSON.stringify(arr));
-    document.cookie = `${key}=${encoded}; path=/; max-age=${60 * 60 * 24 * 30}`;
-    notifySavedJobsCookieChanged();
-  };
+  if (typeof cell !== "string") return (cell as React.ReactNode) ?? "";
+  const trimmed = normalizeText(cell);
+  if (!trimmed) return cell;
 
-  if (loading) {
+  if (isUrl(trimmed)) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-canvas">
-        <div className="text-text-muted text-sm">Loading job details…</div>
-      </div>
+      <a href={trimmed} target="_blank" rel="noopener noreferrer" className={linkClass}>
+        {trimmed}
+      </a>
     );
   }
 
-  if (error || !job) {
+  if (isDomain(trimmed)) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-canvas p-6 text-center">
-        <div className="w-14 h-14 rounded-full bg-surface flex items-center justify-center mb-4">
-          <span className="material-symbols-rounded text-text-muted" style={{ fontSize: "28px" }}>
-            search_off
-          </span>
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink mb-2">Job not found</h1>
-        <p className="text-text-body mb-6 max-w-md">
-          This job listing may have been removed or the link is broken.
-        </p>
-        <Link href="/latest-jobs" className="btn-primary">
-          Back to listings
-        </Link>
-      </div>
+      <a
+        href={toAbsoluteUrl(trimmed)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+      >
+        {trimmed}
+      </a>
     );
   }
+
+  if (isEmail(trimmed)) {
+    return (
+      <a href={`mailto:${trimmed}`} className={linkClass}>
+        {trimmed}
+      </a>
+    );
+  }
+
+  if (fallbackUrl && (ctaPattern.test(trimmed) || forceLink)) {
+    return (
+      <a
+        href={fallbackUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+      >
+        {trimmed}
+      </a>
+    );
+  }
+
+  return cell;
+}
+
+const isImportantLinksTable = (heading?: string | null) =>
+  !!heading && /important\s*links?/i.test(heading);
+
+export default async function JobDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: slug } = await params;
+  const numId = parseNumericId(slug);
+  if (numId === null) notFound();
+
+  const job = await fetchJob(numId);
+  if (!job) notFound();
 
   const tables: JobTable[] = job.tables_json || [];
-
-  const linkClass = "text-primary hover:underline font-medium break-words";
-
-  const normalizeText = (s: string) =>
-    s.replace(/ /g, " ").replace(/\s+/g, " ").trim();
-
-  const isUrl = (s: string) => /^https?:\/\/\S+$/i.test(s);
-  const isDomain = (s: string) =>
-    /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(?:\/[\w\-./?&=#%]*)?$/i.test(
-      s
-    );
-  const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-
-  const ctaPattern =
-    /^(apply now|click here|apply online|apply offline|register now|register here|apply here|download(?:\s+(?:notification|pdf|form|the notification|notification pdf))?|notification|view notification|official notification|application form|download form|view details|check here|get details|here|view here|read more|details here|click to apply|apply|link|view link)$/i;
-
-  const toAbsoluteUrl = (raw: string) => {
-    if (/^https?:\/\//i.test(raw)) return raw;
-    if (/^mailto:|^tel:/i.test(raw)) return raw;
-    return `https://${raw.replace(/^www\./i, "")}`;
-  };
-
-  const truncateForDisplay = (url: string, max = 50) =>
-    url.length <= max ? url : `${url.slice(0, max - 1)}…`;
-
-  const linkifyText = (text?: string | null): React.ReactNode => {
-    if (!text) return text;
-    const urlRegex = /(https?:\/\/[^\s<>"')]+)/gi;
-    const trailingPunct = /[.,;:!?]+$/;
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = urlRegex.exec(text)) !== null) {
-      let url = match[0];
-      let tail = "";
-      const punctMatch = url.match(trailingPunct);
-      if (punctMatch) {
-        tail = punctMatch[0];
-        url = url.slice(0, url.length - tail.length);
-      }
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-      parts.push(
-        <a
-          key={`${match.index}-${url}`}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClass}
-          title={url}
-        >
-          {truncateForDisplay(url)}
-        </a>
-      );
-      if (tail) parts.push(tail);
-      lastIndex = match.index + match[0].length;
-    }
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-    return parts.length > 0 ? <>{parts}</> : text;
-  };
-
-  const renderCellContent = (
-    cell: unknown,
-    fallbackUrl?: string | null,
-    forceLink: boolean = false
-  ): React.ReactNode => {
-    // Forward-compatible: support { text, href } objects from updated scrapers.
-    // Only render as a clickable link inside "Important Links" tables (forceLink),
-    // so regular data cells like Post Name / Salary stay as plain text even when
-    // the scraper happened to capture an href on them.
-    if (cell && typeof cell === "object" && "text" in (cell as Record<string, unknown>)) {
-      const obj = cell as { text?: string; href?: string | null };
-      const text = normalizeText(String(obj.text ?? ""));
-      const href = obj.href && typeof obj.href === "string" ? obj.href.trim() : "";
-      if (text && href && forceLink) {
-        return (
-          <a
-            href={toAbsoluteUrl(href)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            {text}
-          </a>
-        );
-      }
-      return renderCellContent(text, fallbackUrl, forceLink);
-    }
-
-    if (typeof cell !== "string") return (cell as React.ReactNode) ?? "";
-    const trimmed = normalizeText(cell);
-    if (!trimmed) return cell;
-
-    if (isUrl(trimmed)) {
-      return (
-        <a href={trimmed} target="_blank" rel="noopener noreferrer" className={linkClass}>
-          {trimmed}
-        </a>
-      );
-    }
-
-    if (isDomain(trimmed)) {
-      return (
-        <a
-          href={toAbsoluteUrl(trimmed)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClass}
-        >
-          {trimmed}
-        </a>
-      );
-    }
-
-    if (isEmail(trimmed)) {
-      return (
-        <a href={`mailto:${trimmed}`} className={linkClass}>
-          {trimmed}
-        </a>
-      );
-    }
-
-    if (fallbackUrl && (ctaPattern.test(trimmed) || forceLink)) {
-      return (
-        <a
-          href={fallbackUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClass}
-        >
-          {trimmed}
-        </a>
-      );
-    }
-
-    return cell;
-  };
-
-  const isImportantLinksTable = (heading?: string | null) =>
-    !!heading && /important\s*links?/i.test(heading);
 
   const categoryLabel =
     job.category === "structured_job"
@@ -294,10 +201,9 @@ export default function JobDetailPage() {
       ? "Article"
       : job.category || "Job";
 
-  const slugStr = Array.isArray(id) ? id[0] : (id as string);
   const jobLike: JobLike = job as JobLike;
-  const jobPostingLd = buildJobPostingJsonLd(jobLike, slugStr);
-  const breadcrumbLd = buildBreadcrumbJsonLd(jobLike, slugStr);
+  const jobPostingLd = buildJobPostingJsonLd(jobLike, slug);
+  const breadcrumbLd = buildBreadcrumbJsonLd(jobLike, slug);
 
   return (
     <div className="bg-canvas">
@@ -577,24 +483,7 @@ export default function JobDetailPage() {
                     </a>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={toggleSave}
-                    className={`btn-outline w-full justify-center ${
-                      isSaved ? "bg-primary-light border-primary text-primary" : ""
-                    }`}
-                  >
-                    <span
-                      className="material-symbols-rounded"
-                      style={{
-                        fontSize: "16px",
-                        fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0",
-                      }}
-                    >
-                      bookmark
-                    </span>
-                    {isSaved ? "Saved" : "Save for later"}
-                  </button>
+                  <SaveJobButton jobId={numId} />
 
                   {job.apply_text && (
                     <div className="mt-2 p-4 bg-surface border border-hairline rounded-lg text-xs text-text-body leading-relaxed">
