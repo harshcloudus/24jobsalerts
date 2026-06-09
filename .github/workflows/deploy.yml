@@ -33,9 +33,12 @@ jobs:
             git pull origin main
 
             # Update .env file
+            # Backend (config.py) loads .env relative to its cwd (backend/),
+            # so write it there. Keep a copy at the repo root for the frontend build.
             cat > "$DEPLOY_PATH/.env" << 'ENVEOF'
             ${{ secrets.ENV_VALUES }}
             ENVEOF
+            cp "$DEPLOY_PATH/.env" "$DEPLOY_PATH/backend/.env"
 
             # Install backend dependencies (if applicable)
             if [ -f "$DEPLOY_PATH/package.json" ]; then
@@ -47,8 +50,10 @@ jobs:
             npm install
             npm run build
 
-            # Restart PM2 process
-            pm2 restart "$PM2_APP_NAME"
+            # Restart PM2 process from the pinned ecosystem file
+            # (fixes cwd / module path and disables watch-mode restart loop)
+            cd "$DEPLOY_PATH/backend"
+            pm2 startOrReload ecosystem.config.js
             pm2 save
 
             echo "Deployment complete."
