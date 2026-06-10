@@ -43,7 +43,7 @@ if ($slug === '') {
           <?php else: ?>
             <div class="tile-grid">
               <?php foreach ($quals as $qual): ?>
-                <a class="tile qual-tile" href="<?= eattr(url('/qualifications/' . slugify_label($qual) . '/')) ?>">
+                <a class="tile qual-tile" data-ad-nav href="<?= eattr(url('/qualifications/' . slugify_label($qual) . '/')) ?>">
                   <div class="tile-icon"><span class="material-symbols-rounded"><?= e(qualification_icon($qual)) ?></span></div>
                   <div class="tile-body"><div class="tile-title"><?= e($qual) ?></div><div class="tile-count">View jobs</div></div>
                   <div class="tile-arrow"><span class="material-symbols-rounded">arrow_forward</span></div>
@@ -135,7 +135,7 @@ require __DIR__ . '/includes/header.php';
           <div class="flex flex-col gap-3">
             <?php foreach ($jobTypes as $type):
                   $p = url('/all-jobs/') . '?' . http_build_query(['qualification' => $resolved, 'job_type' => $type]); ?>
-              <a href="<?= eattr($p) ?>" class="qual-combo-btn">
+              <a href="<?= eattr($p) ?>" class="qual-combo-btn" data-ad-nav>
                 <span class="material-symbols-rounded qual-combo-icon">play_arrow</span>
                 <span class="qual-combo-label"><?= e(combo_label($resolved, $type)) ?></span>
                 <span class="material-symbols-rounded qual-combo-arrow">arrow_forward</span>

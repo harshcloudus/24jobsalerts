@@ -27,6 +27,23 @@
     }
   });
 
+  // Tile / combo-link click -> navigateWithAdBreak. Mirrors Next pages that
+  // wrap navigation in adBreak: homepage tiles (page.tsx handleJobType /
+  // handleQualification), /qualifications/ + /job-types/ index tiles, and
+  // qualification-detail "Browse by sector" combo links.
+  document.addEventListener("click", function (ev) {
+    var link = ev.target.closest("[data-ad-nav]");
+    if (!link) return;
+    var href = link.getAttribute("href");
+    if (!href) return;
+    ev.preventDefault();
+    if (typeof window.navigateWithAdBreak === "function") {
+      window.navigateWithAdBreak(href);
+    } else {
+      window.location.href = href;
+    }
+  });
+
   // Newsletter AJAX (progressive enhancement; plain POST still works).
   // Replicates Next: button "…" while loading; inline status message with
   // success / exists / error styling.

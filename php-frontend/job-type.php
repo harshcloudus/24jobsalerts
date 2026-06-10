@@ -44,7 +44,7 @@ if ($slug === '') {
           <?php else: ?>
             <div class="tile-grid">
               <?php foreach ($sorted as $type): ?>
-                <a class="tile" href="<?= eattr(url('/job-types/' . slugify_label($type) . '/')) ?>">
+                <a class="tile" data-ad-nav href="<?= eattr(url('/job-types/' . slugify_label($type) . '/')) ?>">
                   <div class="tile-icon"><span class="material-symbols-rounded"><?= e(job_type_tile_icon($type)) ?></span></div>
                   <div class="tile-body"><div class="tile-title"><?= e($type) ?></div><div class="tile-count">Browse jobs</div></div>
                   <div class="tile-arrow"><span class="material-symbols-rounded">arrow_forward</span></div>

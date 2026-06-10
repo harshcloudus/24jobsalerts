@@ -108,7 +108,7 @@ require __DIR__ . '/includes/header.php';
       <?php if (empty($types)): ?>
         <div class="col-span-full text-center text-text-muted py-6">No data.</div>
       <?php else: foreach ($types as $type): ?>
-        <a class="tile" href="<?= eattr(url('/job-types/' . slugify_label($type) . '/')) ?>">
+        <a class="tile" data-ad-nav href="<?= eattr(url('/job-types/' . slugify_label($type) . '/')) ?>">
           <div class="tile-icon"><span class="material-symbols-rounded"><?= e(job_type_icon($type)) ?></span></div>
           <div class="tile-body"><div class="tile-title"><?= e($type) ?></div><div class="tile-count">Browse jobs</div></div>
           <div class="tile-arrow"><span class="material-symbols-rounded">arrow_forward</span></div>
@@ -131,7 +131,7 @@ require __DIR__ . '/includes/header.php';
     <?php if (empty($quals)): ?>
       <div class="col-span-full text-center text-text-muted py-6">No data.</div>
     <?php else: foreach ($quals as $qual): ?>
-      <a class="tile qual-tile" href="<?= eattr(url('/qualifications/' . slugify_label($qual) . '/')) ?>">
+      <a class="tile qual-tile" data-ad-nav href="<?= eattr(url('/qualifications/' . slugify_label($qual) . '/')) ?>">
         <div class="tile-icon"><span class="material-symbols-rounded"><?= e(qualification_icon($qual)) ?></span></div>
         <div class="tile-body"><div class="tile-title"><?= e($qual) ?></div><div class="tile-count">View jobs</div></div>
         <div class="tile-arrow"><span class="material-symbols-rounded">arrow_forward</span></div>
