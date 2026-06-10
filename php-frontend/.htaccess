@@ -1,0 +1,47 @@
+# 24jobsalerts PHP frontend — Apache routing.
+# Replicates next.config.ts trailingSlash + sitemap rewrites and maps the
+# slug-based routes onto the PHP files (passing slug/n as query params).
+#
+# DocumentRoot should point at this php-frontend/ directory (or use an alias —
+# see DEPLOYMENT-APACHE.md). The existing Next.js frontend and FastAPI backend
+# are untouched and run on their own ports/vhosts.
+
+RewriteEngine On
+
+# ---- sitemaps (Yoast-style URLs -> PHP) --------------------------------
+RewriteRule ^sitemap\.xml$            sitemap.php            [L]
+RewriteRule ^page-sitemap\.xml$       page-sitemap.php       [L]
+RewriteRule ^post-sitemap\.xml$       post-sitemap.php?n=1   [L]
+RewriteRule ^post-sitemap([0-9]+)\.xml$ post-sitemap.php?n=$1 [L]
+
+# ---- robots ------------------------------------------------------------
+RewriteRule ^robots\.txt$             robots.php             [L]
+
+# ---- slug-based pages (trailing slash) ---------------------------------
+RewriteRule ^jobs/([^/]+)/?$          job-detail.php?slug=$1 [L,QSA]
+RewriteRule ^qualifications/?$        qualification.php      [L,QSA]
+RewriteRule ^qualifications/([^/]+)/?$ qualification.php?slug=$1 [L,QSA]
+RewriteRule ^job-types/?$             job-type.php           [L,QSA]
+RewriteRule ^job-types/([^/]+)/?$     job-type.php?slug=$1   [L,QSA]
+
+# ---- pretty list routes -> PHP files -----------------------------------
+RewriteRule ^all-jobs/?$              all-jobs.php           [L,QSA]
+RewriteRule ^latest-jobs/?$           latest-jobs.php        [L,QSA]
+RewriteRule ^search/?$                search.php             [L,QSA]
+RewriteRule ^bookmarks/?$             bookmarks.php          [L,QSA]
+RewriteRule ^newsletter/?$            newsletter.php         [L,QSA]
+
+# ---- static pages ------------------------------------------------------
+RewriteRule ^about-us/?$              about-us.php              [L,QSA]
+RewriteRule ^contact-us/?$            contact-us.php            [L,QSA]
+RewriteRule ^privacy-policy/?$        privacy-policy.php        [L,QSA]
+RewriteRule ^terms-and-conditions/?$  terms-and-conditions.php  [L,QSA]
+RewriteRule ^disclaimer/?$            disclaimer.php            [L,QSA]
+
+# Block direct access to includes/templates/cache.
+RewriteRule ^(includes|templates|cache)/ - [F]
+
+# Do not rewrite real files (assets) or the .php files themselves.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
